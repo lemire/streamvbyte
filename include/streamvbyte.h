@@ -6,14 +6,19 @@
 #include <stdint.h>// please use a C99-compatible compiler
 #include <stddef.h>
 
-
+#if defined(__cplusplus)
+extern "C" {
+#endif
 // Encode an array of a given length read from in to bout in varint format.
 // Returns the number of bytes written.
 size_t streamvbyte_encode(uint32_t *in, uint32_t length, uint8_t *out);
 
 // Read "length" 32-bit integers in varint format from in, storing the result in out.
 // Returns the number of bytes read.
-size_t streamvbyte_decode(const uint8_t* in, uint32_t* out, uint32_t length);
+size_t streamvbyte_decode(const uint8_t *in, uint32_t *out, uint32_t length);
 
+#if defined(__cplusplus)
+};
+#endif
 
 #endif /* VARINTDECODE_H_ */
