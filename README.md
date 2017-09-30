@@ -41,6 +41,12 @@ streamvbyte_delta_decode(compressedbuffer, recovdata, N,0); // decoding (fast)
 ```
 You have to know how many integers were coded when you decompress. You can store this 
 information along with the compressed stream.
+
+Stream VByte in other languages
+--------------------------------
+
+* There is a [Rust version](https://bitbucket.org/marshallpierce/stream-vbyte-rust) by Marshall Pierce.
+
 Reference
 ---------
 
