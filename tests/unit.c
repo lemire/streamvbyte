@@ -1,8 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <stdbool.h>
 #include "streamvbyte.h"
 #include "streamvbytedelta.h"
+
+bool isLittleEndian() {
+  int x = 1;
+  char *c = (char*) &x;
+  return (*c == 1);
+}
 
 int main() {
 	int N = 4096;
@@ -69,5 +75,11 @@ int main() {
 	free(compressedbuffer);
 	free(recovdata);
 	printf("Code looks good.\n");
+        if(isLittleEndian()) {
+           printf("And you have a little endian architecture.\n");
+        } else {
+           printf("And you have a big endian architecture.\n");
+           printf("Warning: produced compressed bytes may not be interoperable with little endian systems.\n");
+        }
 	return 0;
 }
