@@ -18,7 +18,7 @@
      /* GCC-compatible compiler, targeting PowerPC with SPE */
      #include <spe.h>
 #endif
-
+#ifdef __AVX__
 static uint8_t lengthTable[256] = { 4, 5, 6, 7, 5, 6, 7, 8, 6, 7, 8, 9, 7, 8, 9,
 		10, 5, 6, 7, 8, 6, 7, 8, 9, 7, 8, 9, 10, 8, 9, 10, 11, 6, 7, 8, 9, 7, 8,
 		9, 10, 8, 9, 10, 11, 9, 10, 11, 12, 7, 8, 9, 10, 8, 9, 10, 11, 9, 10,
@@ -292,7 +292,7 @@ static uint8_t shuffleTable[256][16] = { { 0, -1, -1, -1, 1, -1, -1, -1, 2, -1,
 		{ 0, 1, 2, -1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 },       // 3444
 		{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }        // 4444
 };
-
+#endif 
 static uint8_t _encode_data(uint32_t val, uint8_t *__restrict__ *dataPtrPtr) {
 	uint8_t *dataPtr = *dataPtrPtr;
 	uint8_t code;
