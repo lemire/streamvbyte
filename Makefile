@@ -3,7 +3,7 @@
 #
 .SUFFIXES: .cpp .o .c .h
 
-CFLAGS = -fPIC -march=native -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow
+CFLAGS = -fPIC -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow
 LDFLAGS = -shared
 LIBNAME=libstreamvbyte.so.0.0.1
 all:  unit $(LIBNAME)

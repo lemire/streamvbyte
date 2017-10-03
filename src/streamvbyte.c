@@ -352,6 +352,8 @@ size_t streamvbyte_encode(uint32_t *in, uint32_t count, uint8_t *out) {
 	return svb_encode_scalar(in, keyPtr, dataPtr, count) - out;
 }
 
+#ifdef __AVX__ // though we do not require AVX per se, it is a macro that MSVC will issue
+
 static inline __m128i _decode_avx(uint32_t key,
 		const uint8_t *__restrict__ *dataPtrPtr) {
 	uint8_t len = lengthTable[key];
@@ -366,6 +368,9 @@ static inline __m128i _decode_avx(uint32_t key,
 static inline void _write_avx(uint32_t *out, __m128i Vec) {
 	_mm_storeu_si128((__m128i *) out, Vec);
 }
+
+#endif // __AVX__
+
 
 static inline uint32_t _decode_data(const uint8_t **dataPtrPtr, uint8_t code) {
 	const uint8_t *dataPtr = *dataPtrPtr;
@@ -408,6 +413,7 @@ static const uint8_t *svb_decode_scalar(uint32_t *outPtr, const uint8_t *keyPtr,
 
 	return dataPtr; // pointer to first unused byte after end
 }
+#ifdef __AVX__ // though we do not require AVX per se, it is a macro that MSVC will issue
 
 const uint8_t *svb_decode_avx_simple(uint32_t *out,
 		const uint8_t *__restrict__ keyPtr, const uint8_t *__restrict__ dataPtr,
@@ -483,6 +489,11 @@ const uint8_t *svb_decode_avx_simple(uint32_t *out,
 	return svb_decode_scalar(out, keyPtr + consumedkeys, dataPtr, count & 31);
 }
 
+
+
+#endif
+
+
 // Read count 32-bit integers in maskedvbyte format from in, storing the result in out.  Returns the number of bytes read.
 size_t streamvbyte_decode(const uint8_t* in, uint32_t* out, uint32_t count) {
 	if (count == 0)
@@ -490,6 +501,9 @@ size_t streamvbyte_decode(const uint8_t* in, uint32_t* out, uint32_t count) {
 	const uint8_t *keyPtr = in;            // full list of keys is next
 	uint32_t keyLen = ((count + 3) / 4); // 2-bits per key (rounded up)
 	const uint8_t *dataPtr = keyPtr + keyLen;  // data starts at end of keys
+#ifdef __AVX__
 	return svb_decode_avx_simple(out, keyPtr, dataPtr, count) - in;
-
-}
+#else
+	return svb_decode_scalar(out, keyPtr, dataPtr, count) - in;
+#endif
+} 

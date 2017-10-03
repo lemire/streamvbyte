@@ -19,6 +19,7 @@
      #include <spe.h>
 #endif
 
+#ifdef __AVX__
 static uint8_t lengthTable[256] = { 4, 5, 6, 7, 5, 6, 7, 8, 6, 7, 8, 9, 7, 8, 9,
 		10, 5, 6, 7, 8, 6, 7, 8, 9, 7, 8, 9, 10, 8, 9, 10, 11, 6, 7, 8, 9, 7, 8,
 		9, 10, 8, 9, 10, 11, 9, 10, 11, 12, 7, 8, 9, 10, 8, 9, 10, 11, 9, 10,
@@ -293,6 +294,8 @@ static uint8_t shuffleTable[256][16] = { { 0, -1, -1, -1, 1, -1, -1, -1, 2, -1,
 		{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }        // 4444
 };
 
+#endif
+
 static uint8_t _encode_data(uint32_t val, uint8_t *__restrict__ *dataPtrPtr) {
 	uint8_t *dataPtr = *dataPtrPtr;
 	uint8_t code;
@@ -354,6 +357,7 @@ size_t streamvbyte_delta_encode(uint32_t *in, uint32_t count, uint8_t *out,
 
 }
 
+#ifdef __AVX__
 static inline __m128i _decode_avx(uint32_t key, const uint8_t *__restrict__ *dataPtrPtr) {
 	uint8_t len = lengthTable[key];
 	__m128i Data = _mm_loadu_si128((__m128i *) *dataPtrPtr);
@@ -384,6 +388,7 @@ static __m128i _write_avx_d1(uint32_t *out, __m128i Vec, __m128i Prev) {
 	return Vec;
 }
 
+
 #ifndef _MSC_VER
 static __m128i High16To32 = {0xFFFF0B0AFFFF0908, 0xFFFF0F0EFFFF0D0C};
 #else
@@ -407,6 +412,7 @@ static inline __m128i _write_16bit_avx_d1(uint32_t *out, __m128i Vec, __m128i Pr
   _write_avx(out + 4, V2);
   return V2;
 }
+#endif
 
 static inline uint32_t _decode_data(const uint8_t **dataPtrPtr, uint8_t code) {
 	const uint8_t *dataPtr = *dataPtrPtr;
@@ -455,6 +461,7 @@ const uint8_t *svb_decode_scalar_d1_init(uint32_t *outPtr, const uint8_t *keyPtr
   return dataPtr; // pointer to first unused byte after end
 }
 
+#ifdef __AVX__
 const uint8_t *svb_decode_avx_d1_init(uint32_t *out, const uint8_t *__restrict__ keyPtr,
 		const uint8_t *__restrict__ dataPtr, uint64_t count, uint32_t prev) {
 	uint64_t keybytes = count / 4; // number of key bytes
@@ -566,10 +573,18 @@ const uint8_t *svb_decode_avx_d1_init(uint32_t *out, const uint8_t *__restrict__
 			count & 31, prev);
 }
 
+#endif
+
+
 size_t streamvbyte_delta_decode(const uint8_t* in, uint32_t* out,
 		uint32_t count, uint32_t prev) {
 	uint32_t keyLen = ((count + 3) / 4); // 2-bits per key (rounded up)
 	const uint8_t *keyPtr = in;
 	const uint8_t *dataPtr = keyPtr + keyLen;  // data starts at end of keys
+#ifdef __AVX__
 	return svb_decode_avx_d1_init(out, keyPtr, dataPtr, count, prev) - in;
+#else
+        return svb_decode_scalar_d1_init(out, keyPtr, dataPtr, count, prev) - in;
+#endif 
 }
+
