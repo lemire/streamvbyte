@@ -54,6 +54,57 @@ Stream VByte in other languages
 
 * There is a [Rust version](https://bitbucket.org/marshallpierce/stream-vbyte-rust) by Marshall Pierce.
 
+Format Specification
+---------------------
+
+We specify the format as follows. 
+
+We do not store how many integers (``count``) are compressed
+in the compressed data per se. If you want to store
+the data stream (e.g., to disk), you need to add this
+information. It is intentionally left out because, in
+applications, it is often the case that there are better
+ways to store this count.
+ 
+There are two streams:
+
+- The data starts with an array of "control bytes". There
+   are (count + 3) / 4 of them.
+- Following the array of control bytes, there are data bytes.
+
+We can interpret the control bytes as a sequence of 2-bit words.
+The first 2-bit word is made of the least significant 2 bits
+in the first byte, and so forth. There are four 2-bit words
+written in each byte.
+
+Starting from the first 2-bit word, we have corresponding 
+sequence in the data bytes, written in sequence from the beginning:
+ - When the 2-bit word is 00, there is a single data byte.
+ - When the 2-bit words is 01, there are two data bytes.
+ - When the 2-bit words is 10, there are three data bytes.
+ - When the 2-bit words is 11, there are four data bytes.
+
+The data bytes are stored using a little-endian encoding.
+
+
+Consider the following example:
+
+```
+control bytes: [0x40 0x55 ... ]
+data bytes: [0x00 0x64 0xc8 0x2c 0x01 0x90  0x01 0xf4 0x01 0x58 0x02 0xbc 0x02 ...]
+```
+
+The first control byte is 0x40 or the four 2-bit words : ``00 00 00 01``.
+The second control byte is 0x55 or the four 2-bit words : ``01 01 01 01``.
+Thus the first three values are given by the first three bytes:
+``0x00, 0x64, 0xc8`` (or 0, 100, 200 in base 10). The five next values are stored
+using two bytes each: ``0x2c 0x01, 0x90  0x01, 0xf4 0x01, 0x58 0x02, 0xbc 0x02``.
+As little endian integers, these are to be interpreted as 300, 400, 500, 600, 700.
+
+Thus, to recap, the sequence of integers (0,100,200,300,400,500,600,700) gets encoded as the 15 bytes  ``0x40 0x55 0x00 0x64 0xc8 0x2c 0x01 0x90  0x01 0xf4 0x01 0x58 0x02 0xbc 0x02``.
+
+If the ``count``is not divisible by four, then we include a final partial group where we use zero 2-bit corresponding to no data byte.
+
 Reference
 ---------
 
