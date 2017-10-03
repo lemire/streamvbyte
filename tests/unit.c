@@ -81,5 +81,10 @@ int main() {
            printf("And you have a big endian architecture.\n");
            printf("Warning: produced compressed bytes may not be interoperable with little endian systems.\n");
         }
+#ifdef __AVX__
+        printf("Code was vectorized.\n");
+#else
+        printf("Warning: you tested non-vectorized code.\n");
+#endif
 	return 0;
 }
