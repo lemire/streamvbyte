@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 // POC standalone test until code looks ok
-// usage:  gcc -o encode_poc encode_poc.c
+// usage:  gcc -msse4.1 -o encode_poc encode_poc.c
 
 void dump(__m128i x, char *msg) {
   uint32_t out[4];
@@ -13,57 +13,52 @@ void dump(__m128i x, char *msg) {
   for( int i=0; i<4; i++)
     printf("%d,", out[i]);
   printf("\n");
+
+  printf("%s ", msg);
+  for( int i=0; i<4; i++)
+    printf("%08x,", out[i]);
+  printf("\n");
 }
 
 
 int main() {
-  uint32_t out[4];
+  uint8_t out[16];
   uint32_t dataPtr[] = {100,400,100000, 1000};
 
-  // constants
-  __m128i three = _mm_set_epi32(3,3,3,3);
-  __m128i signs = _mm_set_epi32(1<<31,1<<31,1<<31,1<<31);
+  // use min to set bytes to 1 or 0 
+  uint8_t Ones[16] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
 
-  // thresholds pre-adjusted for signed cmp
-  #define u8  1<<31 | 1<<8
-  #define u16 1<<31 | 1<<16
-  #define u24 1<<31 | 1<<24
+  // bithack shift/or into high byte via multiply
+#define shifter (1+(1<<9)+(1<<18))
+  uint32_t Shifts[4] = {shifter,shifter,shifter,shifter};
 
-  // comparison threshold vectors
-  __m128i b1 = _mm_set_epi32( u8, u8, u8, u8);
-  __m128i b2 = _mm_set_epi32(u16,u16,u16,u16);
-  __m128i b3 = _mm_set_epi32(u24,u24,u24,u24);
+  // translate 8 possible shift/ored bitmaps into lane codes
+  // 3 - trailing zero count
+  uint8_t Codes[16] = {0,3,2,3,1,3,2,3,0,0,0,0,0,0,0,0};
+
+  __m128i ones   = *(__m128i *) Ones;
+  __m128i shifts = *(__m128i *) Shifts;
+  __m128i codes  = *(__m128i *) Codes;
 
   // data loop can begin here:
   __m128i Data = _mm_loadu_si128((__m128i *) dataPtr);
-
   dump(Data, "Data");
 
-  // adjust for signed cmp
-  __m128i cmpData = _mm_xor_si128(Data, signs);
+  __m128i mins = _mm_min_epu8(Data, ones);
 
-  // cmp to thresholds and add up result bitmasks (-1 or 0)
-  __m128i r = 
-    _mm_add_epi32(
-		  _mm_add_epi32(
-				_mm_cmpgt_epi32(b1, cmpData),
-				_mm_cmpgt_epi32(b2, cmpData)),
-		  _mm_cmpgt_epi32(b3, cmpData));
+  __m128i bytemaps = _mm_mullo_epi32( mins, shifts);
 
-  // get 3 - #thresholds gt num
-  r = _mm_add_epi32(r, three);
+  __m128i lanecodes = _mm_shuffle_epi8(codes, bytemaps);
 
-  // 2 bits of code are now in each lane
-  dump(r, "Codes");
+  dump(lanecodes, "lane code in high byte");
 
   // endianness note:  control byte uses high bits <=> dataPtr[4]
+  // shove pairs of lanes together into lower 32
+  __m128i paired = _mm_or_si128(lanecodes, _mm_srli_epi64(lanecodes, 30));
 
-  // shove pairs of lanes together
-  r = _mm_or_si128(r, _mm_srli_epi64(r, 30));
-
-  // concat 4-bit chunks
-  _mm_storeu_si128((__m128i *) out, r);
-  uint32_t code = out[0] | (out[2] << 4);
+  // concat 4-bit chunks from high bytes
+  _mm_storeu_si128((__m128i *) out, paired);
+  uint32_t code = out[3] | (out[11] << 4);  // todo:  check indices
 
   printf("code 0x%02x\n", code);
 
