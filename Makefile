@@ -48,6 +48,9 @@ $(LIBNAME): $(OBJECTS)
 	$(CC) $(CFLAGS) -o $(LIBNAME) $(OBJECTS)  $(LDFLAGS)
 
 
+shuffle_tables: ./utils/shuffle_tables.c 
+	$(CC) $(CFLAGS) -o shuffle_tables ./utils/shuffle_tables.c
+
 
 
 example: ./example.c    $(HEADERS) $(OBJECTS)

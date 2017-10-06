@@ -49,6 +49,17 @@ Technical posts
 * [Stream VByte: breaking new speed records for integer compression](https://lemire.me/blog/2017/09/27/stream-vbyte-breaking-new-speed-records-for-integer-compression/) by Daniel Lemire
 
 
+Generating the shuffling masks
+-------------------------------
+
+The code relies on "magical" shuffling masks to quicly reorder bytes. Most users and programmers do not need to worry about them, but if you need to regenerate them, you can do so as follows:
+
+```
+ make shuffle_tables
+ ./shuffle_tables
+```
+
+
 Stream VByte in other languages
 --------------------------------
 
