@@ -34,10 +34,10 @@ const u128 Ones = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
 const u128 Shifts = {.u32 = {shifter,shifter,shifter,shifter}};
 
 // translate 3-bit maps into lane codes
-const u128 LaneCodes   = {0,3,2,3,1,3,2,3,0,0,0,0,0,0,0,0};
+const u128 LaneCodes   = {0,3,2,3,1,3,2,3,-1,-1,-1,-1,-1,-1,-1,-1};
 
 // gather high bytes from each lane, 2 copies
-const u128 GatherHi = {15,11,7,3,15,11,7,3,0,0,0,0,0,0,0,0};
+const u128 GatherHi = {15,11,7,3,15,11,7,3,-1,-1,-1,-1,-1,-1,-1,-1};
 
 // mul-shift magic numbers
 // concatenate 2-bit lane codes into high byte
