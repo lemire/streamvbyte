@@ -20,53 +20,54 @@ void dump(__m128i x, char *msg) {
   printf("\n");
 }
 
+typedef union M128 {
+  char i8[16];
+  uint32_t u32[4];
+  __m128i i128;
+} u128;
 
-int main() {
-  uint8_t out[16];
-  uint32_t dataPtr[] = {100,400,100000, 1000};
+const u128 Ones = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
 
-  // use min to set bytes to 1 or 0 
-  uint8_t Ones[16] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+// bithack 3 byte lsb's shift/or into high byte via multiply
+#define shifter (1|1<<9|1<<18)
+const u128 Shifts = {.u32 = {shifter,shifter,shifter,shifter}};
 
-  // bithack shift/or into high byte via multiply
-#define shifter (1+(1<<9)+(1<<18))
-  uint32_t Shifts[4] = {shifter,shifter,shifter,shifter};
+// translate 3-bitmaps into lane codes
+const u128 Codes   = {0,3,2,3,1,3,2,3,0,0,0,0,0,0,0,0};
 
-  // translate 8 possible shift/ored bitmaps into lane codes
-  // 3 - trailing zero count
-  uint8_t Codes[16] = {0,3,2,3,1,3,2,3,0,0,0,0,0,0,0,0};
+const u128 CollectHi = {15,11,7,3,15,11,7,3,0,0,0,0,0,0,0,0};
 
-  __m128i ones   = *(__m128i *) Ones;
-  __m128i shifts = *(__m128i *) Shifts;
-  __m128i codes  = *(__m128i *) Codes;
+// mul-shift 2-bit codes into high byte
+#define concat (1|1<<10|1<<20|1<<30)
+#define sum    (1|1<<8|1<<16|1<<24)
+const u128 Aggregates = {.u32 = {concat, sum, 0, 0}};
 
-  // data loop can begin here:
-  __m128i Data = _mm_loadu_si128((__m128i *) dataPtr);
-  dump(Data, "Data");
+size_t streamvbyte_encode(u128 *in, uint8_t *outData, uint8_t *outCode) {
 
-  __m128i mins = _mm_min_epu8(Data, ones);
+  __m128i mins = _mm_min_epu8(in->i128, Ones.i128);
+  __m128i bytemaps = _mm_mullo_epi32( mins, Shifts.i128);
+  __m128i lanecodes = _mm_shuffle_epi8(Codes.i128, bytemaps);
 
-  __m128i bytemaps = _mm_mullo_epi32( mins, shifts);
+  // pshufb high bytes into one lane
+  __m128i hibytes = _mm_shuffle_epi8(lanecodes, CollectHi.i128);
 
-  __m128i lanecodes = _mm_shuffle_epi8(codes, bytemaps);
+  u128 codeAndLength = {.i128 = _mm_mullo_epi32(hibytes, Aggregates.i128)};
+  uint8_t code  = codeAndLength.i8[3];
+  size_t length = codeAndLength.i8[7] + 4;
 
-  dump(lanecodes, "lane code in high byte");
+  // get shuffle[code]
 
-  // endianness note:  control byte uses high bits <=> dataPtr[4]
-  // shove pairs of lanes together into lower 32
-  __m128i paired = _mm_or_si128(lanecodes, _mm_srli_epi64(lanecodes, 30));
-
-  // concat 4-bit chunks from high bytes
-  _mm_storeu_si128((__m128i *) out, paired);
-  uint32_t code = out[3] | (out[11] << 4);  // todo:  check indices
-
-  printf("code 0x%02x\n", code);
-
-  // get shuffle[code], length[code] (2 instr)
-  // todo: shuffle table (inverse of decode)
   // shuffle (1)
   // store bytes (1)
-  // store code (1)
-  // outptr += length (1)
+  return length; /// size
+}
+
+int main() {
+  uint32_t data[] = { 10, 1000, 100000, 100000000 };
+  uint8_t outData[16], outCode[1];
+
+  size_t len = streamvbyte_encode((u128 *) data, outData, outCode);
+  printf("code 0x%02x\n", outCode[0]);
+  printf("length %d\n", (int) len);
 
 }
