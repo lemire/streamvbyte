@@ -3,7 +3,12 @@
 #
 .SUFFIXES: .cpp .o .c .h
 
+PROCESSOR:=$(shell uname -m)
+ifeq ($(PROCESSOR), aarch64) 
+CFLAGS = -fPIC -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow
+else
 CFLAGS = -fPIC -march=native -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow
+endif
 LDFLAGS = -shared
 LIBNAME=libstreamvbyte.so.0.0.1
 all:  unit $(LIBNAME)
@@ -42,6 +47,9 @@ streamvbyte.o: ./src/streamvbyte.c $(HEADERS)
 $(LIBNAME): $(OBJECTS)
 	$(CC) $(CFLAGS) -o $(LIBNAME) $(OBJECTS)  $(LDFLAGS)
 
+
+shuffle_tables: ./utils/shuffle_tables.c 
+	$(CC) $(CFLAGS) -o shuffle_tables ./utils/shuffle_tables.c
 
 
 
