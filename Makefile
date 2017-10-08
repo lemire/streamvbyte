@@ -5,9 +5,9 @@
 
 PROCESSOR:=$(shell uname -m)
 ifeq ($(PROCESSOR), aarch64) 
-CFLAGS = -fPIC -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow
+CFLAGS = -msse4.1 -fPIC -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow
 else
-CFLAGS = -fPIC -march=native -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow
+CFLAGS = -fPIC -march=native -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow 
 endif
 LDFLAGS = -shared
 LIBNAME=libstreamvbyte.so.0.0.1
