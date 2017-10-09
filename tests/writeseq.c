@@ -1,6 +1,6 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 
 #include "streamvbyte.h"
 
@@ -12,7 +12,7 @@ int main() {
   for (int k = 0; k < N; ++k)
     datain[k] = k * 100;
   size_t compsize = streamvbyte_encode(datain, N, compressedbuffer); // encoding
-  const char * filename = "data.bin";
+  const char *filename = "data.bin";
   printf("I will write the data to %s \n", filename);
   FILE *f = fopen(filename, "w");
   size_t bw = fwrite(compressedbuffer, 1, compsize, f);
