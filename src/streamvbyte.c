@@ -20,9 +20,9 @@
 #endif
 #ifdef __AVX__
 
-#include "shuffle_tables.h"
+#include "streamvbyte_shuffle_tables.h"
 
-#endif 
+#endif
 static uint8_t _encode_data(uint32_t val, uint8_t *__restrict__ *dataPtrPtr) {
 	uint8_t *dataPtr = *dataPtrPtr;
 	uint8_t code;
@@ -144,7 +144,7 @@ size_t streamvbyte_encode(uint32_t *in, uint32_t count, uint8_t *out) {
 	uint8_t *keyPtr = out;
 	uint32_t keyLen = (count + 3) / 4; // 2-bits rounded to full byte
 	uint8_t *dataPtr = keyPtr + keyLen; // variable byte data after all keys
-#ifdef __AVX__ 
+#ifdef __AVX__
 	return svb_encode_vector(in, keyPtr, dataPtr, count) - out;
 #else
 	return svb_encode_scalar(in, keyPtr, dataPtr, count) - out;
@@ -305,4 +305,4 @@ size_t streamvbyte_decode(const uint8_t* in, uint32_t* out, uint32_t count) {
 #else
 	return svb_decode_scalar(out, keyPtr, dataPtr, count) - in;
 #endif
-} 
+}
