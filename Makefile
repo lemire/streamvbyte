@@ -69,4 +69,4 @@ dynunit: ./tests/unit.c    $(HEADERS) $(LIBNAME)
 	$(CC) $(CFLAGS) -o dynunit ./tests/unit.c -Iinclude  -lstreamvbyte
 
 clean:
-	rm -f unit *.o $(LIBNAME) example
+	rm -f unit *.o $(LIBNAME) example shuffle_tables perf writeseq dynunit
