@@ -4,4 +4,4 @@ compiler:
   - gcc
   - clang
 
-script: make && ./unit
+script: make && ./unit && make example && ./example
