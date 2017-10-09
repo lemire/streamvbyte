@@ -20,7 +20,7 @@ int main() {
 		printf("length = %d \n", length);
 		for (uint32_t gap = 1; gap <= 387420489; gap *= 3) {
 			for (int k = 0; k < length; ++k)
-				datain[k] = gap;
+				datain[k] = gap + (rand() % 8);
 			size_t compsize = streamvbyte_encode(datain, length,
 					compressedbuffer);
 			size_t usedbytes = streamvbyte_decode(compressedbuffer, recovdata,

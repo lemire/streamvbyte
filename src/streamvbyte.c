@@ -81,7 +81,7 @@ typedef union M128 {
   __m128i i128;
 } u128;
 
-size_t streamvbyte_encode4(u128 *in, uint8_t *outData, uint8_t *outCode) {
+size_t streamvbyte_encode4(__m128i in, uint8_t *outData, uint8_t *outCode) {
 
 const u128 Ones = {.i8 = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}};
 
@@ -102,7 +102,7 @@ const u128 GatherHi = {.i8 = {15,11,7,3,15,11,7,3,-1,-1,-1,-1,-1,-1,-1,-1}};
 #define sum    (1|1<<8|1<<16|1<<24)
 const u128 Aggregators = {.u32 = {concat, sum, 0, 0}};
 
-  __m128i mins      = _mm_min_epu8(in->i128, Ones.i128);
+  __m128i mins      = _mm_min_epu8(in, Ones.i128);
   __m128i bytemaps  = _mm_mullo_epi32( mins, Shifts.i128);
   __m128i lanecodes = _mm_shuffle_epi8(LaneCodes.i128, bytemaps);
   __m128i hibytes   = _mm_shuffle_epi8(lanecodes, GatherHi.i128);
@@ -112,7 +112,7 @@ const u128 Aggregators = {.u32 = {concat, sum, 0, 0}};
   size_t length = codeAndLength.i8[7] + 4;
 
   __m128i Shuf = *(__m128i *) &encodingShuffleTable[code];
-  __m128i outAligned = _mm_shuffle_epi8(in->i128, Shuf);
+  __m128i outAligned = _mm_shuffle_epi8(in, Shuf);
 
   _mm_storeu_si128 ((__m128i *) outData, outAligned);
   *outCode = code;
@@ -128,10 +128,14 @@ static uint8_t *svb_encode_vector(const uint32_t *in,
 
   uint32_t count4 = count/4;
 
-  for (uint32_t c = 0; c < count4 ; c++)
-    outData += streamvbyte_encode4((u128 *) (in + 4*c), outData, outKey++);
-
-  outData = svb_encode_scalar(in, outKey, outData, count - 4*count4);
+  for (uint32_t c = 0; c < count4 ; c++) {
+    // doing (u128 *) (in + 4*c) is potentially unsafe due to
+    // alignment constraints
+    __m128i vin = _mm_loadu_si128 ((__m128i *)(in + 4*c));
+    outData += streamvbyte_encode4(vin, outData, outKey);
+    outKey ++;
+  }
+  outData = svb_encode_scalar(in + 4*count4, outKey, outData, count - 4*count4);
 
   return outData;
 }

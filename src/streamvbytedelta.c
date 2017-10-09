@@ -76,13 +76,54 @@ static uint8_t *svb_encode_scalar_d1_init(const uint32_t *in,
 	return dataPtr; // pointer to first unused data byte
 }
 
+#ifdef __AVX__
+
+
+// from streamvbyte.c
+size_t streamvbyte_encode4(__m128i in, uint8_t *outData, uint8_t *outCode);
+
+
+static __m128i Delta(__m128i curr, __m128i prev) {
+    return _mm_sub_epi32(
+        curr, _mm_or_si128(_mm_slli_si128(curr, 4), _mm_srli_si128(prev, 12)));
+}
+
+static uint8_t *svb_encode_vector_d1_init(const uint32_t *in,
+				  uint8_t *__restrict__ keyPtr, uint8_t *__restrict__ dataPtr,
+				  uint32_t count, uint32_t prev) {
+
+  uint8_t * outData = dataPtr;
+  uint8_t * outKey  = keyPtr;
+
+  uint32_t count4 = count/4;
+		__m128i Prev = _mm_set1_epi32(prev);
+
+  for (uint32_t c = 0; c < count4 ; c++) {
+    __m128i vin = _mm_loadu_si128 ((__m128i *)(in + 4*c));
+    __m128i deltain =  Delta(vin,Prev);
+    Prev = vin;
+    outData += streamvbyte_encode4(deltain, outData, outKey);
+    outKey++;
+  }
+  prev = _mm_extract_epi32(Prev, 3);// we grab the last*/
+  outData = svb_encode_scalar_d1_init(in + 4*count4, outKey, outData, count - 4*count4, prev);
+//outData = svb_encode_scalar_d1_init(in, outKey, outData, count, prev);
+  return outData;
+}
+
+#endif
+
+
 size_t streamvbyte_delta_encode(uint32_t *in, uint32_t count, uint8_t *out,
 		uint32_t prev) {
 	uint8_t *keyPtr = out;         // keys come immediately after 32-bit count
 	uint32_t keyLen = (count + 3) / 4; // 2-bits rounded to full byte
 	uint8_t *dataPtr = keyPtr + keyLen; // variable byte data after all keys
-
+#ifdef __AVX__
+	return svb_encode_vector_d1_init(in, keyPtr, dataPtr, count, prev) - out;
+#else
 	return svb_encode_scalar_d1_init(in, keyPtr, dataPtr, count, prev) - out;
+#endif
 
 }
 
