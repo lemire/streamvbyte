@@ -5,8 +5,12 @@
 
 PROCESSOR:=$(shell uname -m)
 ifeq ($(PROCESSOR), aarch64) 
+# for ARM processors
 CFLAGS = -fPIC -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow
 else
+# Here we expect x64
+# Formally speaking, we only need SSE4, at best, but code checks for AVX
+# since MSVC only allows to check for AVX and nothing finer like just SSE4
 CFLAGS = -fPIC -march=native -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow 
 endif
 LDFLAGS = -shared
