@@ -13,11 +13,11 @@ bool isLittleEndian() {
 int main() {
 	int N = 4096;
 	uint32_t * datain = malloc(N * sizeof(uint32_t));
-	uint8_t * compressedbuffer = malloc(2 * N * sizeof(uint32_t));
+        // on purpose we mess with the alignment of compressedbufferorig
+	uint8_t * compressedbufferorig = malloc(streamvbyte_max_compressedbytes(N) + sizeof(uint32_t));
+        uint8_t * compressedbuffer = compressedbufferorig + (sizeof(uint32_t) - 1); 
 	uint32_t * recovdata = malloc(N * sizeof(uint32_t));
-
 	for (int length = 0; length <= N;) {
-		printf("length = %d \n", length);
 		for (uint32_t gap = 1; gap <= 387420489; gap *= 3) {
 			for (int k = 0; k < length; ++k)
 				datain[k] = gap + (rand() % 8);
@@ -40,7 +40,6 @@ int main() {
 			}
 		}
 
-		printf("Delta \n");
 		for (size_t gap = 1; gap <= 531441; gap *= 3) {
 			for (int k = 0; k < length; ++k)
 				datain[k] = gap * k;
@@ -72,7 +71,7 @@ int main() {
 		}
 	}
 	free(datain);
-	free(compressedbuffer);
+	free(compressedbufferorig);
 	free(recovdata);
 	printf("Code looks good.\n");
         if(isLittleEndian()) {

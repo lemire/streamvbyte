@@ -23,6 +23,8 @@
 #include "streamvbyte_shuffle_tables.h"
 
 #endif
+#include <string.h> // for memcpy
+
 static uint8_t _encode_data(uint32_t val, uint8_t *__restrict__ *dataPtrPtr) {
 	uint8_t *dataPtr = *dataPtrPtr;
 	uint8_t code;
@@ -32,17 +34,16 @@ static uint8_t _encode_data(uint32_t val, uint8_t *__restrict__ *dataPtrPtr) {
 		*dataPtrPtr += 1;
 		code = 0;
 	} else if (val < (1 << 16)) { // 2 bytes
-		*(uint16_t *) dataPtr = (uint16_t)(val);
+                memcpy( dataPtr, & val, 2); // assumes little endian
 		*dataPtrPtr += 2;
 		code = 1;
 	} else if (val < (1 << 24)) { // 3 bytes
-		*(uint16_t *) dataPtr = (uint16_t)(val);
-		*(dataPtr + 2) = (uint8_t)(val >> 16);
+                memcpy( dataPtr, & val, 3);// assumes little endian
 		*dataPtrPtr += 3;
 		code = 2;
 	} else { // 4 bytes
-		*(uint32_t *) dataPtr = val;
-		*dataPtrPtr += 4;
+                memcpy( dataPtr, & val, sizeof(uint32_t));
+		*dataPtrPtr += sizeof(uint32_t);
 		code = 3;
 	}
 
@@ -183,14 +184,15 @@ static inline uint32_t _decode_data(const uint8_t **dataPtrPtr, uint8_t code) {
 		val = (uint32_t) * dataPtr;
 		dataPtr += 1;
 	} else if (code == 1) { // 2 bytes
-		val = (uint32_t) * (uint16_t *) dataPtr;
+                val = 0;
+                memcpy(&val, dataPtr, 2); // assumes little endian
 		dataPtr += 2;
 	} else if (code == 2) { // 3 bytes
-		val = (uint32_t) * (uint16_t *) dataPtr;
-		val |= *(dataPtr + 2) << 16;
+                val = 0;
+                memcpy(&val, dataPtr, 3); // assumes little endian
 		dataPtr += 3;
 	} else {                      // code == 3
-		val = *(uint32_t *) dataPtr; // 4 bytes
+                memcpy(&val, dataPtr, 4); 
 		dataPtr += 4;
 	}
 
@@ -229,10 +231,11 @@ const uint8_t *svb_decode_avx_simple(uint32_t *out,
 		int64_t Offset = -(int64_t) keybytes / 8 + 1;
 
 		const uint64_t *keyPtr64 = (const uint64_t *) keyPtr - Offset;
-		uint64_t nextkeys = keyPtr64[Offset];
-		for (; Offset != 0; ++Offset) {
+		uint64_t nextkeys;
+		memcpy(&nextkeys, keyPtr64 + Offset , sizeof(nextkeys));
+                for (; Offset != 0; ++Offset) {
 			uint64_t keys = nextkeys;
-			nextkeys = keyPtr64[Offset + 1];
+			memcpy(&nextkeys, keyPtr64 + Offset + 1, sizeof(nextkeys));
 
 			Data = _decode_avx((keys & 0xFF), &dataPtr);
 			_write_avx(out, Data);
