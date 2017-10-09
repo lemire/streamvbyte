@@ -21,7 +21,7 @@
 
 #ifdef __AVX__
 
-#include "shuffle_tables.h"
+#include "streamvbyte_shuffle_tables.h"
 
 #endif
 
