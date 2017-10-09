@@ -56,6 +56,9 @@ shuffle_tables: ./utils/shuffle_tables.c
 example: ./example.c    $(HEADERS) $(OBJECTS)
 	$(CC) $(CFLAGS) -o example ./example.c -Iinclude  $(OBJECTS)
 
+perf: ./perf.c    $(HEADERS) $(OBJECTS)
+	$(CC) $(CFLAGS) -o perf ./perf.c -Iinclude  $(OBJECTS)
+
 writeseq: ./tests/writeseq.c    $(HEADERS) $(OBJECTS)
 	$(CC) $(CFLAGS) -o writeseq ./tests/writeseq.c -Iinclude  $(OBJECTS)
 

@@ -102,7 +102,6 @@ const u128 Aggregators = {.u32 = {concat, sum, 0, 0}};
 
 size_t streamvbyte_encode4(u128 *in, uint8_t *outData, uint8_t *outCode) {
 
-  //  __m128i inAligned = _mm_loadu_si128((__m128i*) in);
   __m128i mins      = _mm_min_epu8(in->i128, Ones.i128);
   __m128i bytemaps  = _mm_mullo_epi32( mins, Shifts.i128);
   __m128i lanecodes = _mm_shuffle_epi8(LaneCodes.i128, bytemaps);
@@ -126,11 +125,10 @@ static uint8_t *svb_encode_vector(const uint32_t *in,
 
   uint8_t * outData = dataPtr;
   uint8_t * outKey  = keyPtr;
-  uint32_t c;
 
   uint32_t count4 = count/4;
 
-  for (c = 0; c < count4 ; c++)
+  for (uint32_t c = 0; c < count4 ; c++)
     outData += streamvbyte_encode4((u128 *) (in + 4*c), outData, outKey++);
 
   outData = svb_encode_scalar(in, outKey, outData, count - 4*count4);
