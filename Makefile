@@ -5,7 +5,7 @@
 
 PROCESSOR:=$(shell uname -m)
 ifeq ($(PROCESSOR), aarch64) 
-CFLAGS = -msse4.1 -fPIC -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow
+CFLAGS = -fPIC -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow
 else
 CFLAGS = -fPIC -march=native -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow 
 endif

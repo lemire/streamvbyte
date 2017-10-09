@@ -81,6 +81,8 @@ typedef union M128 {
   __m128i i128;
 } u128;
 
+size_t streamvbyte_encode4(u128 *in, uint8_t *outData, uint8_t *outCode) {
+
 const u128 Ones = {.i8 = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}};
 
 // bithack 3 byte lsb's shift/or into high byte via multiply
@@ -99,8 +101,6 @@ const u128 GatherHi = {.i8 = {15,11,7,3,15,11,7,3,-1,-1,-1,-1,-1,-1,-1,-1}};
 // sum lane codes in high byte
 #define sum    (1|1<<8|1<<16|1<<24)
 const u128 Aggregators = {.u32 = {concat, sum, 0, 0}};
-
-size_t streamvbyte_encode4(u128 *in, uint8_t *outData, uint8_t *outCode) {
 
   __m128i mins      = _mm_min_epu8(in->i128, Ones.i128);
   __m128i bytemaps  = _mm_mullo_epi32( mins, Shifts.i128);
