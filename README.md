@@ -120,7 +120,7 @@ If the ``count``is not divisible by four, then we include a final partial group 
 Reference
 ---------
 
-* Daniel Lemire, Nathan Kurz, Christoph Rupp, [Stream VByte: Faster Byte-Oriented Integer Compression](https://arxiv.org/abs/1709.08990), Information Processing Letters (to appear)
+* Daniel Lemire, Nathan Kurz, Christoph Rupp, [Stream VByte: Faster Byte-Oriented Integer Compression](https://arxiv.org/abs/1709.08990), Information Processing Letters 130, 2018.
 
 See also
 --------
