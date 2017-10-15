@@ -4,7 +4,7 @@
 .SUFFIXES: .cpp .o .c .h
 
 PROCESSOR:=$(shell uname -m)
-ifeq ($(PROCESSOR), aarch64) 
+ifeq ($(PROCESSOR), armv7l) 
 # for ARM processors
 CFLAGS = -fPIC -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow
 else
