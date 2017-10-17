@@ -18,7 +18,7 @@ uint8x8_t gatherlo = {12, 8, 4, 0, 12, 8, 4, 0};
 #define sum (1 | 1 << 8 | 1 << 16 | 1 << 24)
 uint32x2_t Aggregators = {concat, sum};
 
-uint32x4_t data = {1, 0xFF, 0xdeadbeef, 0xab };
+uint32x4_t data = {0xabcdef, 0xfeeddad, 0xdeadbeef, 0xab };
 
 
 // lane code is 3 ^ (clz(data)/8)
@@ -44,13 +44,27 @@ uint8x16_t databytes = vreinterpretq_u8_u32(data);
 uint8x8x2_t datahalves = {vget_low_u8(databytes), vget_high_u8(databytes)};
 
 uint8x8_t first8 = *(uint8x8_t *) &encodingShuffleTable[code];
-uint8x8_t out = vtbl2_u8(datahalves, first8);
+
+uint8_t out[16];
+*(uint8x8_t *) out = vtbl2_u8(datahalves, first8);
 
 if( length > 8 ) {
-	uint8x8_t last8 = *(uint8x8_t *) (8 + (void*)&encodingShuffleTable[code]);
-	uint8x8_t out2 = vtbl2_u8(datahalves, last8);
+	uint8x8_t last8 = *(uint8x8_t *) (8 + (uint8_t *)&encodingShuffleTable[code]);
+	*(uint8x8_t *) (out+8) = vtbl2_u8(datahalves, last8);
 }
-for( int i = 0; i < 8; i++)
+
+// decode
+uint32_t dec[4];
+
+uint8x8x2_t codehalves = {*(uint8x8_t *) out, *(uint8x8_t *) (out+8)};
+*(uint8x8_t *) dec = vtbl2_u8(codehalves, *(uint8x8_t *) &shuffleTable[code] );
+
+*(uint8x8_t *) (dec+2) = vtbl2_u8(codehalves, *(uint8x8_t *) (8 + (uint8_t *)&shuffleTable[code]) );
+
+for( int i = 0; i < 4; i++ )
+	printf("%x\n", dec[i]);
+
+for( int i = 0; i < length; i++)
 	printf("%2x ", out[i]);
 printf("\n");
 // shuffle(first 8 of mask)
