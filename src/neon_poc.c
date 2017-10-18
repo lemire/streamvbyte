@@ -37,10 +37,11 @@ uint8x8_t lobytes = vtbl2_u8( twohalves, gatherlo);
 
 uint32x2_t mulshift = vreinterpret_u32_u8(lobytes);
 
-uint32x2_t codeAndLength = vmul_u32(mulshift, Aggregators);
+uint32_t codeAndLength[2];
+vst1_u32(codeAndLength, vmul_u32(mulshift, Aggregators));
 
-uint32_t code = codeAndLength[0]>>24;
-size_t length = 4+(codeAndLength[1]>>24) ;
+uint32_t code = codeAndLength[0] >> 24;
+size_t length = 4 + (codeAndLength[1] >> 24) ;
 
 // shuffle in 8-byte chunks
 uint8x16_t databytes = vreinterpretq_u8_u32(data);
