@@ -16,7 +16,6 @@ uint8_t pgatherlo[] = {12, 8, 4, 0, 12, 8, 4, 0};
 uint8x8_t gatherlo = vld1_u8(pgatherlo);
 
 #define concat (1 | 1 << 10 | 1 << 20 | 1 << 30)
-// sum lane codes in high byte
 #define sum (1 | 1 << 8 | 1 << 16 | 1 << 24)
 uint32_t pAggregators[2] = {concat, sum};
 uint32x2_t Aggregators = vld1_u32(pAggregators);
@@ -32,7 +31,7 @@ uint32x4_t lanecodes = veorq_u32(clzbytes, mask);
 uint8x16_t lanebytes = vreinterpretq_u8_u32(lanecodes);
 uint8x8x2_t twohalves = {vget_low_u8(lanebytes), vget_high_u8(lanebytes)};
 
-// shuffle msbytes into two copies of an int
+// shuffle lsbytes into two copies of an int
 uint8x8_t lobytes = vtbl2_u8( twohalves, gatherlo);
 
 uint32x2_t mulshift = vreinterpret_u32_u8(lobytes);
@@ -41,23 +40,20 @@ uint32_t codeAndLength[2];
 vst1_u32(codeAndLength, vmul_u32(mulshift, Aggregators));
 
 uint32_t code = codeAndLength[0] >> 24;
-size_t length = 4 + (codeAndLength[1] >> 24) ;
+size_t length = 4 + (codeAndLength[1] >> 24);
 
 // shuffle in 8-byte chunks
 uint8x16_t databytes = vreinterpretq_u8_u32(data);
 uint8x8x2_t datahalves = {vget_low_u8(databytes), vget_high_u8(databytes)};
 
-uint8_t * pShuffle = (uint8_t *) &encodingShuffleTable[code];
-
-uint8x8_t first8 = vld1_u8(pShuffle);
+uint8x16_t encodingShuffle = vld1q_u8((uint8_t *) &encodingShuffleTable[code]);
 
 uint8_t out[16];
-vst1_u8(out, vtbl2_u8(datahalves, first8));
+vst1_u8(out, vtbl2_u8(datahalves, vget_low_u8(encodingShuffle)));
 
-if( length > 8 ) {
-	uint8x8_t last8 = vld1_u8(pShuffle + 8);
-	vst1_u8(out + 8, vtbl2_u8(datahalves, last8));
-}
+if( length > 8 )
+	vst1_u8(out + 8, vtbl2_u8(datahalves, vget_high_u8(encodingShuffle)));
+
 
 // decode
 uint32_t dec[4];
@@ -66,10 +62,10 @@ uint32_t dec[4];
 uint8x16_t compressed = vld1q_u8(out);
 uint8x8x2_t codehalves = {vget_low_u8(compressed), vget_high_u8(compressed)};
 
-uint8_t *pShuf = (uint8_t *) &shuffleTable[code];
+uint8x16_t decodingShuffle = vld1q_u8((uint8_t *) &shuffleTable[code]);
 
-vst1_u8((uint8_t *) dec, vtbl2_u8(codehalves, vld1_u8(pShuf)));
-vst1_u8((uint8_t *) (dec+2), vtbl2_u8(codehalves, vld1_u8(pShuf + 8)));
+vst1_u8((uint8_t *) dec, vtbl2_u8(codehalves, vget_low_u8(decodingShuffle)));
+vst1_u8((uint8_t *) (dec+2), vtbl2_u8(codehalves, vget_high_u8(decodingShuffle)));
 
 for( int i = 0; i < 4; i++ )
 	printf("%x\n", dec[i]);
