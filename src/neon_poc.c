@@ -1,4 +1,5 @@
-// usage:  gcc -mfpu=neon -mfloat-abi=hard -std=c99 tst.c
+// usage(pi):  gcc -mfpu=neon -mfloat-abi=hard -std=c99 neon_poc.c
+// usage(SuSE):  gcc -std=c99 neon_poc.c
 // little-endian pi version
 #include <arm_neon.h>
 #include <inttypes.h>
