@@ -26,7 +26,7 @@
 
 #endif
 #include <string.h> // for memcpy
-#include <stdio.h> //TEST
+
 static uint8_t _encode_data(uint32_t val, uint8_t *__restrict__ *dataPtrPtr) {
   uint8_t *dataPtr = *dataPtrPtr;
   uint8_t code;
@@ -83,7 +83,6 @@ static uint8_t *svb_encode_scalar(const uint32_t *in,
 
 size_t streamvbyte_encode4(uint32x4_t data, uint8_t *outData, uint8_t *outCode) {
 
-  printf("neon \n");
   uint8_t pgatherlo[] = {12, 8, 4, 0, 12, 8, 4, 0};
   uint8x8_t gatherlo = vld1_u8(pgatherlo);
 

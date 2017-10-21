@@ -4,8 +4,12 @@
 .SUFFIXES: .cpp .o .c .h
 
 PROCESSOR:=$(shell uname -m)
-ifeq ($(PROCESSOR), aarch64) 
-# for ARM processors
+
+ifeq ($(PROCESSOR), aarch64)
+# for 64-bit ARM processors
+CFLAGS = -fPIC -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow
+else ifeq ($(PROCESSOR), armv7l) 
+# for 32-bit ARM processors
 CFLAGS = -fPIC -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow
 else
 # Here we expect x64

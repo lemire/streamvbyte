@@ -29,6 +29,8 @@ int main() {
   // here the result is stored in compressedbuffer using compsize bytes
   size_t compsize2 = streamvbyte_decode(compressedbuffer, recovdata,
                                         N); // decoding (fast)
+
+  printf("compsize=%d compsize2 = %d\n", compsize, compsize2);
   assert(compsize == compsize2);
 
   for (int k = 0; k < N; k++)
