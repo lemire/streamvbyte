@@ -18,12 +18,12 @@ int main() {
   uint32_t pAggregators[2] = {concat, sum};
   uint32x2_t Aggregators = vld1_u32(pAggregators);
 
-  uint32_t pdata[4] = {0xabcdef, 0xfeeddad, 0xdeadbeef, 0xab };
+  uint32_t pdata[4] = {0xabcdef, 0xfeeddad, 0xdeadbeef, 0x00 };
   uint32x4_t data = vld1q_u32(pdata);
 
-  // lane code is 3 ^ (clz(data)/8)
+  // lane code is 4 - (clz(data)/8)
   uint32x4_t clzbytes = vshrq_n_u32(vclzq_u32(data), 3);
-  uint32x4_t lanecodes = veorq_u32(clzbytes, vdupq_n_u32(3));
+  uint32x4_t lanecodes = vqsubq_u32(vdupq_n_u32(3), clzbytes);
 
   // nops
   uint8x16_t lanebytes = vreinterpretq_u8_u32(lanecodes);
