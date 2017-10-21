@@ -1,4 +1,5 @@
 #include "streamvbyte.h"
+#define __ARM_NEON__
 #if defined(_MSC_VER)
 /* Microsoft C/C++-compatible compiler */
 #include <intrin.h>
@@ -25,7 +26,7 @@
 
 #endif
 #include <string.h> // for memcpy
-
+#include <stdio.h> //TEST
 static uint8_t _encode_data(uint32_t val, uint8_t *__restrict__ *dataPtrPtr) {
   uint8_t *dataPtr = *dataPtrPtr;
   uint8_t code;
@@ -76,6 +77,62 @@ static uint8_t *svb_encode_scalar(const uint32_t *in,
   return dataPtr; // pointer to first unused data byte
 }
 
+#ifdef __ARM_NEON__
+
+#include "streamvbyte_shuffle_tables.h"
+
+size_t streamvbyte_encode4(uint32x4_t data, uint8_t *outData, uint8_t *outCode) {
+
+  printf("neon \n");
+  uint8_t pgatherlo[] = {12, 8, 4, 0, 12, 8, 4, 0};
+  uint8x8_t gatherlo = vld1_u8(pgatherlo);
+
+#define concat (1 | 1 << 10 | 1 << 20 | 1 << 30)
+#define sum (1 | 1 << 8 | 1 << 16 | 1 << 24)
+  uint32_t pAggregators[2] = {concat, sum};
+  uint32x2_t Aggregators = vld1_u32(pAggregators);
+
+  // lane code is 3 ^ (clz(data)/8)
+  uint32x4_t clzbytes = vshrq_n_u32(vclzq_u32(data), 3);
+  uint32x4_t lanecodes = veorq_u32(clzbytes, vdupq_n_u32(3));
+
+  // nops
+  uint8x16_t lanebytes = vreinterpretq_u8_u32(lanecodes);
+  uint8x8x2_t twohalves = {{vget_low_u8(lanebytes), vget_high_u8(lanebytes)}};
+
+  // shuffle lsbytes into two copies of an int
+  uint8x8_t lobytes = vtbl2_u8(twohalves, gatherlo);
+
+  uint32x2_t mulshift = vreinterpret_u32_u8(lobytes);
+
+  uint32_t codeAndLength[2];
+  vst1_u32(codeAndLength, vmul_u32(mulshift, Aggregators));
+
+  uint32_t code = codeAndLength[0] >> 24;
+  size_t length = 4 + (codeAndLength[1] >> 24);
+
+  // shuffle in 8-byte chunks
+  uint8x16_t databytes = vreinterpretq_u8_u32(data);
+  uint8x8x2_t datahalves = {{vget_low_u8(databytes), vget_high_u8(databytes)}};
+
+  uint8x16_t encodingShuffle = vld1q_u8((uint8_t *) &encodingShuffleTable[code]);
+
+  vst1_u8(outData, vtbl2_u8(datahalves, vget_low_u8(encodingShuffle)));
+
+  if( length > 8 )
+    vst1_u8(outData + 8, vtbl2_u8(datahalves, vget_high_u8(encodingShuffle)));
+
+  *outCode = code;
+  return length;
+}
+
+size_t streamvbyte_encode_quad( uint32_t *in, uint8_t *outData, uint8_t *outCode) { 
+  uint32x4_t inq = vld1q_u32(in);
+  return streamvbyte_encode4(inq, outData, outCode);
+}
+
+#endif
+
 #ifdef __AVX__
 
 typedef union M128 {
@@ -83,6 +140,11 @@ typedef union M128 {
   uint32_t u32[4];
   __m128i i128;
 } u128;
+
+size_t streamvbyte_encode_quad( uint32_t *in, uint8_t *outData, uint8_t *outCode) { 
+    __m128i vin = _mm_loadu_si128((__m128i *) in );
+    outData += streamvbyte_encode4(vin, outData, outKey);
+}
 
 size_t streamvbyte_encode4(__m128i in, uint8_t *outData, uint8_t *outCode) {
 
@@ -124,29 +186,6 @@ size_t streamvbyte_encode4(__m128i in, uint8_t *outData, uint8_t *outCode) {
   return length;
 }
 
-static uint8_t *svb_encode_vector(const uint32_t *in,
-                                  uint8_t *__restrict__ keyPtr,
-                                  uint8_t *__restrict__ dataPtr,
-                                  uint32_t count) {
-
-  uint8_t *outData = dataPtr;
-  uint8_t *outKey = keyPtr;
-
-  uint32_t count4 = count / 4;
-
-  for (uint32_t c = 0; c < count4; c++) {
-    // doing (u128 *) (in + 4*c) is potentially unsafe due to
-    // alignment constraints
-    __m128i vin = _mm_loadu_si128((__m128i *)(in + 4 * c));
-    outData += streamvbyte_encode4(vin, outData, outKey);
-    outKey++;
-  }
-  outData =
-      svb_encode_scalar(in + 4 * count4, outKey, outData, count - 4 * count4);
-
-  return outData;
-}
-
 #endif
 
 // Encode an array of a given length read from in to bout in streamvbyte format.
@@ -155,11 +194,22 @@ size_t streamvbyte_encode(uint32_t *in, uint32_t count, uint8_t *out) {
   uint8_t *keyPtr = out;
   uint32_t keyLen = (count + 3) / 4;  // 2-bits rounded to full byte
   uint8_t *dataPtr = keyPtr + keyLen; // variable byte data after all keys
-#ifdef __AVX__
-  return svb_encode_vector(in, keyPtr, dataPtr, count) - out;
-#else
-  return svb_encode_scalar(in, keyPtr, dataPtr, count) - out;
+
+#if defined(__AVX__) || defined(__ARM_NEON__)
+
+  uint32_t count_quads = count / 4;
+  count -= 4 * count_quads;
+
+  for (uint32_t c = 0; c < count_quads; c++) {
+    dataPtr += streamvbyte_encode_quad(in, dataPtr, keyPtr);
+    keyPtr++;
+    in += 4;
+  }
+
 #endif
+
+  return svb_encode_scalar(in, keyPtr, dataPtr, count) - out;
+
 }
 
 #ifdef __AVX__ // though we do not require AVX per se, it is a macro that MSVC

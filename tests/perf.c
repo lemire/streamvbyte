@@ -5,8 +5,8 @@
 #include "streamvbyte.h"
 static inline void rdtsc(unsigned long long *destination) {
   uint64_t t;
-  __asm__ volatile(".byte 0x0f, 0x31" : "=A"(t));
-  *destination = t;
+  //  __asm__ volatile(".byte 0x0f, 0x31" : "=A"(t));
+  *destination = 0;
 }
 
 int main() {

@@ -82,7 +82,7 @@ static uint8_t *svb_encode_scalar_d1_init(const uint32_t *in,
 #ifdef __AVX__
 
 // from streamvbyte.c
-size_t streamvbyte_encode4(__m128i in, uint8_t *outData, uint8_t *outCode);
+size_t streamvbyte_encode_quad(__m128i in, uint8_t *outData, uint8_t *outCode);
 
 static __m128i Delta(__m128i curr, __m128i prev) {
   return _mm_sub_epi32(
