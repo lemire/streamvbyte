@@ -144,10 +144,17 @@ static inline uint8x8x2_t  _decode_neon(uint8_t key,
   return data;
 }
 
-void streamvbyte_decode_quad( const uint8_t *__restrict__*inData, uint8_t key, uint32_t *out ) {
-  uint8x8x2_t data =_decode_neon( key, inData );
+void streamvbyte_decode_quad( const uint8_t *__restrict__*dataPtrPtr, uint8_t key, uint32_t *out ) {
+  uint8x8x2_t data =_decode_neon( key, dataPtrPtr );
   vst1_u8((uint8_t *) out, data.val[0]);
   vst1_u8((uint8_t *) (out + 2), data.val[1]);
+}
+
+uint8_t *svb_decode_vector(uint32_t *out, uint8_t *keyPtr, uint8_t *dataPtr, uint32_t count) {
+  for(int i = 0; i < count/4; i++) 
+    streamvbyte_decode_quad( &dataPtr, keyPtr[i], out + 4*i );
+
+  return dataPtr;
 }
 
 #endif
@@ -369,8 +376,9 @@ const uint8_t *svb_decode_avx_simple(uint32_t *out,
       out += 32;
     }
   }
-  uint64_t consumedkeys = keybytes - (keybytes & 7);
-  return svb_decode_scalar(out, keyPtr + consumedkeys, dataPtr, count & 31);
+  //uint64_t consumedkeys = keybytes - (keybytes & 7);
+  return dataPtr;
+  //  return svb_decode_scalar(out, keyPtr + consumedkeys, dataPtr, count & 31);
 }
 
 #endif
@@ -383,9 +391,20 @@ size_t streamvbyte_decode(const uint8_t *in, uint32_t *out, uint32_t count) {
   const uint8_t *keyPtr = in;               // full list of keys is next
   uint32_t keyLen = ((count + 3) / 4);      // 2-bits per key (rounded up)
   const uint8_t *dataPtr = keyPtr + keyLen; // data starts at end of keys
+  size_t vector_bytes = 0;
+
 #ifdef __AVX__
-  return svb_decode_avx_simple(out, keyPtr, dataPtr, count) - in;
-#else
-  return svb_decode_scalar(out, keyPtr, dataPtr, count) - in;
+  dataPtr = svb_decode_avx_simple(out, keyPtr, dataPtr, count);
+  out += count & ~ 31;
+  keyPtr += (count/4) & ~ 7;
+  count &= 31;
+#elif defined(__ARM_NEON__)
+  dataPtr = svb_decode_vector(out, keyPtr, dataPtr, count);
+  out += count - (count & 3);
+  keyPtr += count/4;
+  count &= 3;
 #endif
+
+  return svb_decode_scalar(out, keyPtr, dataPtr, count) - in;
+
 }
