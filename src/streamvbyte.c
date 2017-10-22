@@ -125,7 +125,29 @@ size_t streamvbyte_encode4(uint32x4_t data, uint8_t *outData, uint8_t *outCode) 
 
 size_t streamvbyte_encode_quad( uint32_t *in, uint8_t *outData, uint8_t *outCode) { 
   uint32x4_t inq = vld1q_u32(in);
+  
   return streamvbyte_encode4(inq, outData, outCode);
+}
+
+static inline uint8x8x2_t  _decode_neon(uint8_t key,
+					const uint8_t *__restrict__ *dataPtrPtr) {
+
+  uint8x16_t compressed = vld1q_u8(*dataPtrPtr);
+  uint8x8x2_t codehalves = {{vget_low_u8(compressed), vget_high_u8(compressed)}};
+
+  uint8x16_t decodingShuffle = vld1q_u8((uint8_t *) &shuffleTable[key]);
+
+  uint8x8x2_t data = {{vtbl2_u8(codehalves, vget_low_u8(decodingShuffle)),
+		       vtbl2_u8(codehalves, vget_high_u8(decodingShuffle))}};
+
+  *dataPtrPtr += lengthTable[key];
+  return data;
+}
+
+void streamvbyte_decode_quad( const uint8_t *__restrict__*inData, uint8_t key, uint32_t *out ) {
+  uint8x8x2_t data =_decode_neon( key, inData );
+  vst1_u8((uint8_t *) out, data.val[0]);
+  vst1_u8((uint8_t *) (out + 2), data.val[1]);
 }
 
 #endif
