@@ -117,9 +117,7 @@ size_t streamvbyte_encode4(uint32x4_t data, uint8_t *outData, uint8_t *outCode) 
   uint8x16_t encodingShuffle = vld1q_u8((uint8_t *) &encodingShuffleTable[code]);
 
   vst1_u8(outData, vtbl2_u8(datahalves, vget_low_u8(encodingShuffle)));
-
-  if( length > 8 )
-    vst1_u8(outData + 8, vtbl2_u8(datahalves, vget_high_u8(encodingShuffle)));
+  vst1_u8(outData + 8, vtbl2_u8(datahalves, vget_high_u8(encodingShuffle)));
 
   *outCode = code;
   return length;

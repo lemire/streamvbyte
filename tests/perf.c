@@ -11,6 +11,7 @@
 
 int main() {
   int N = 500000;
+  int NTrials = 100;
   uint32_t datain[N];
   uint8_t compressedbuffer[N * 5];
   uint32_t recovdata[N];
@@ -22,7 +23,7 @@ int main() {
 
   //  uint64_t tsc, tsc2;
   //  rdtsc(&tsc);
-  for (int i = 0; i < 2; i++)
+  for (int i = 0; i < NTrials; i++)
     compsize = streamvbyte_encode(datain, N, compressedbuffer); // encoding
 
   //  rdtsc(&tsc2);
