@@ -1,5 +1,5 @@
 #include "streamvbyte.h"
-#define __ARM_NEON__
+
 #if defined(_MSC_VER)
 /* Microsoft C/C++-compatible compiler */
 #include <intrin.h>
@@ -151,7 +151,7 @@ void streamvbyte_decode_quad( const uint8_t *__restrict__*dataPtrPtr, uint8_t ke
 }
 
 uint8_t *svb_decode_vector(uint32_t *out, uint8_t *keyPtr, uint8_t *dataPtr, uint32_t count) {
-  for(int i = 0; i < count/4; i++) 
+  for(uint32_t i = 0; i < count/4; i++) 
     streamvbyte_decode_quad( &dataPtr, keyPtr[i], out + 4*i );
 
   return dataPtr;
@@ -376,9 +376,8 @@ const uint8_t *svb_decode_avx_simple(uint32_t *out,
       out += 32;
     }
   }
-  //uint64_t consumedkeys = keybytes - (keybytes & 7);
+
   return dataPtr;
-  //  return svb_decode_scalar(out, keyPtr + consumedkeys, dataPtr, count & 31);
 }
 
 #endif
@@ -388,10 +387,10 @@ const uint8_t *svb_decode_avx_simple(uint32_t *out,
 size_t streamvbyte_decode(const uint8_t *in, uint32_t *out, uint32_t count) {
   if (count == 0)
     return 0;
+
   const uint8_t *keyPtr = in;               // full list of keys is next
   uint32_t keyLen = ((count + 3) / 4);      // 2-bits per key (rounded up)
   const uint8_t *dataPtr = keyPtr + keyLen; // data starts at end of keys
-  size_t vector_bytes = 0;
 
 #ifdef __AVX__
   dataPtr = svb_decode_avx_simple(out, keyPtr, dataPtr, count);

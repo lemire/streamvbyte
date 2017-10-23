@@ -7,7 +7,7 @@ PROCESSOR:=$(shell uname -m)
 
 ifeq ($(PROCESSOR), aarch64)
 # for 64-bit ARM processors
-CFLAGS = -fPIC -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow
+CFLAGS = -fPIC -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow -D__ARM_NEON__
 else ifeq ($(PROCESSOR), armv7l) 
 # for 32-bit ARM processors
 CFLAGS = -fPIC -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow
@@ -66,6 +66,9 @@ example: ./example.c    $(HEADERS) $(OBJECTS)
 
 perf: ./tests/perf.c    $(HEADERS) $(OBJECTS)
 	$(CC) $(CFLAGS) -o perf ./tests/perf.c -Iinclude  $(OBJECTS)
+
+decode_perf: ./tests/decode_perf.c    $(HEADERS) $(OBJECTS)
+	$(CC) $(CFLAGS) -o decode_perf ./tests/decode_perf.c -Iinclude  $(OBJECTS)
 
 writeseq: ./tests/writeseq.c    $(HEADERS) $(OBJECTS)
 	$(CC) $(CFLAGS) -o writeseq ./tests/writeseq.c -Iinclude  $(OBJECTS)
