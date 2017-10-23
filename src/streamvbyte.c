@@ -81,7 +81,7 @@ static uint8_t *svb_encode_scalar(const uint32_t *in,
 
 #include "streamvbyte_shuffle_tables.h"
 
-size_t streamvbyte_encode4(uint32x4_t data, uint8_t *outData, uint8_t *outCode) {
+size_t streamvbyte_encode4(uint32x4_t data, uint8_t *__restrict__ outData, uint8_t *__restrict__ outCode) {
 
   uint8_t pgatherlo[] = {12, 8, 4, 0, 12, 8, 4, 0};
   uint8x8_t gatherlo = vld1_u8(pgatherlo);
@@ -123,7 +123,7 @@ size_t streamvbyte_encode4(uint32x4_t data, uint8_t *outData, uint8_t *outCode) 
   return length;
 }
 
-size_t streamvbyte_encode_quad( uint32_t *in, uint8_t *outData, uint8_t *outCode) { 
+size_t streamvbyte_encode_quad( uint32_t *__restrict__ in, uint8_t *__restrict__ outData, uint8_t *__restrict__ outCode) { 
   uint32x4_t inq = vld1q_u32(in);
   
   return streamvbyte_encode4(inq, outData, outCode);

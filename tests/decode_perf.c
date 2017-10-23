@@ -45,7 +45,7 @@ int main() {
   // here the result is stored in compressedbuffer using compsize bytes
 
 
-  printf("compsize=%d compsize2 = %d\n", compsize, compsize2);
+  printf("compsize=%zu compsize2 = %zu\n", compsize, compsize2);
   //  assert(compsize == compsize2);
 
   int k;
