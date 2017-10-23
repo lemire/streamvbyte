@@ -150,7 +150,7 @@ void streamvbyte_decode_quad( const uint8_t *__restrict__*dataPtrPtr, uint8_t ke
   vst1_u8((uint8_t *) (out + 2), data.val[1]);
 }
 
-uint8_t *svb_decode_vector(uint32_t *out, uint8_t *keyPtr, uint8_t *dataPtr, uint32_t count) {
+const uint8_t *svb_decode_vector(uint32_t *out, const uint8_t *keyPtr, const uint8_t *dataPtr, uint32_t count) {
   for(uint32_t i = 0; i < count/4; i++) 
     streamvbyte_decode_quad( &dataPtr, keyPtr[i], out + 4*i );
 
