@@ -111,13 +111,13 @@ inline size_t streamvbyte_encode4(uint32x4_t data, uint8_t *__restrict__ outData
 
   // shuffle in 8-byte chunks
   uint8x16_t databytes = vreinterpretq_u8_u32(data);
-  uint8x8x2_t datahalves = {{vget_low_u8(databytes), vget_high_u8(databytes)}};
+  //  uint8x8x2_t datahalves = {{vget_low_u8(databytes), vget_high_u8(databytes)}};
 
   uint8x16_t encodingShuffle = vld1q_u8((uint8_t *) &encodingShuffleTable[code]);
 
-  vst1_u8(outData, vtbl2_u8(datahalves, vget_low_u8(encodingShuffle)));
-  vst1_u8(outData + 8, vtbl2_u8(datahalves, vget_high_u8(encodingShuffle)));
-
+  //  vst1_u8(outData, vtbl2_u8(datahalves, vget_low_u8(encodingShuffle)));
+  //  vst1_u8(outData + 8, vtbl2_u8(datahalves, vget_high_u8(encodingShuffle)));
+  vst1q_u8(outData, vqtbl1q_u8(databytes, encodingShuffle));
   *outCode = code;
   return length;
 }
@@ -128,25 +128,26 @@ inline size_t streamvbyte_encode_quad( uint32_t *__restrict__ in, uint8_t *__res
   return streamvbyte_encode4(inq, outData, outCode);
 }
 
-static inline uint8x8x2_t  _decode_neon(const uint8_t key,
-					const uint8_t *__restrict__ *dataPtrPtr) {
-
-  uint8x16_t compressed = vld1q_u8(*dataPtrPtr);
-  uint8x8x2_t codehalves = {{vget_low_u8(compressed), vget_high_u8(compressed)}};
+static inline uint8x16_t  _decode_neon(const uint8_t key,
+					const uint8_t * restrict *dataPtrPtr) {
 
   uint8x16_t decodingShuffle = vld1q_u8((uint8_t *) &shuffleTable[key]);
 
-  uint8x8x2_t data = {{vtbl2_u8(codehalves, vget_low_u8(decodingShuffle)),
-		       vtbl2_u8(codehalves, vget_high_u8(decodingShuffle))}};
+  uint8x16_t compressed = vld1q_u8(*dataPtrPtr);
+  //  uint8x8x2_t codehalves = {{vget_low_u8(compressed), vget_high_u8(compressed)}};
 
+  //uint8x8x2_t data = {{vtbl2_u8(codehalves, vget_low_u8(decodingShuffle)),
+  //  vtbl2_u8(codehalves, vget_high_u8(decodingShuffle))}};
+
+  uint8x16_t data = vqtbl1q_u8(compressed, decodingShuffle);
   *dataPtrPtr += lengthTable[key];
   return data;
 }
 
-void streamvbyte_decode_quad( const uint8_t *__restrict__*dataPtrPtr, uint8_t key, uint32_t * restrict out ) {
-  uint8x8x2_t data =_decode_neon( key, dataPtrPtr );
-  vst1_u8((uint8_t *) out, data.val[0]);
-  vst1_u8((uint8_t *) (out + 2), data.val[1]);
+void streamvbyte_decode_quad( const uint8_t * restrict *dataPtrPtr, uint8_t key, uint32_t * restrict out ) {
+  uint8x16_t data =_decode_neon( key, dataPtrPtr );
+  vst1q_u8((uint8_t *) out, data);
+  //  vst1_u8((uint8_t *) (out + 2), data.val[1]);
 }
 
 const uint8_t *svb_decode_vector(uint32_t *out, const uint8_t *keyPtr, const uint8_t *dataPtr, uint32_t count) {
