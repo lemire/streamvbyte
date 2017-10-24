@@ -128,7 +128,7 @@ inline size_t streamvbyte_encode_quad( uint32_t *__restrict__ in, uint8_t *__res
   return streamvbyte_encode4(inq, outData, outCode);
 }
 
-static inline uint8x8x2_t  _decode_neon(uint8_t key,
+static inline uint8x8x2_t  _decode_neon(const uint8_t key,
 					const uint8_t *__restrict__ *dataPtrPtr) {
 
   uint8x16_t compressed = vld1q_u8(*dataPtrPtr);
@@ -143,7 +143,7 @@ static inline uint8x8x2_t  _decode_neon(uint8_t key,
   return data;
 }
 
-void streamvbyte_decode_quad( const uint8_t *__restrict__*dataPtrPtr, uint8_t key, uint32_t *out ) {
+void streamvbyte_decode_quad( const uint8_t *__restrict__*dataPtrPtr, uint8_t key, uint32_t * restrict out ) {
   uint8x8x2_t data =_decode_neon( key, dataPtrPtr );
   vst1_u8((uint8_t *) out, data.val[0]);
   vst1_u8((uint8_t *) (out + 2), data.val[1]);
