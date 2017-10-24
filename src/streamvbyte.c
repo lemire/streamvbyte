@@ -80,16 +80,15 @@ static uint8_t *svb_encode_scalar(const uint32_t *in,
 #ifdef __ARM_NEON__
 
 #include "streamvbyte_shuffle_tables.h"
-
-size_t streamvbyte_encode4(uint32x4_t data, uint8_t *__restrict__ outData, uint8_t *__restrict__ outCode) {
-
-  uint8_t pgatherlo[] = {12, 8, 4, 0, 12, 8, 4, 0};
-  uint8x8_t gatherlo = vld1_u8(pgatherlo);
-
+const uint8_t pgatherlo[] = {12, 8, 4, 0, 12, 8, 4, 0};
 #define concat (1 | 1 << 10 | 1 << 20 | 1 << 30)
 #define sum (1 | 1 << 8 | 1 << 16 | 1 << 24)
-  uint32_t pAggregators[2] = {concat, sum};
-  uint32x2_t Aggregators = vld1_u32(pAggregators);
+const  uint32_t pAggregators[2] = {concat, sum};
+
+inline size_t streamvbyte_encode4(uint32x4_t data, uint8_t *__restrict__ outData, uint8_t *__restrict__ outCode) {
+
+  const uint8x8_t gatherlo = vld1_u8(pgatherlo);
+  const  uint32x2_t Aggregators = vld1_u32(pAggregators);
 
   // lane code is 3 - (saturating sub) (clz(data)/8)
   uint32x4_t clzbytes = vshrq_n_u32(vclzq_u32(data), 3);
@@ -123,7 +122,7 @@ size_t streamvbyte_encode4(uint32x4_t data, uint8_t *__restrict__ outData, uint8
   return length;
 }
 
-size_t streamvbyte_encode_quad( uint32_t *__restrict__ in, uint8_t *__restrict__ outData, uint8_t *__restrict__ outCode) { 
+inline size_t streamvbyte_encode_quad( uint32_t *__restrict__ in, uint8_t *__restrict__ outData, uint8_t *__restrict__ outCode) { 
   uint32x4_t inq = vld1q_u32(in);
   
   return streamvbyte_encode4(inq, outData, outCode);
