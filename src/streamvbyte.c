@@ -104,6 +104,7 @@ inline size_t streamvbyte_encode4(uint32x4_t data, uint8_t *__restrict__ outData
   // shuffle lsbytes into two copies of an int
   uint8x8_t lobytes = vtbl2_u8(twohalves, gatherlo);
 #endif
+
   uint32x2_t mulshift = vreinterpret_u32_u8(lobytes);
 
   uint32_t codeAndLength[2];
@@ -114,13 +115,15 @@ inline size_t streamvbyte_encode4(uint32x4_t data, uint8_t *__restrict__ outData
 
   // shuffle in 8-byte chunks
   uint8x16_t databytes = vreinterpretq_u8_u32(data);
-  //  uint8x8x2_t datahalves = {{vget_low_u8(databytes), vget_high_u8(databytes)}};
-
   uint8x16_t encodingShuffle = vld1q_u8((uint8_t *) &encodingShuffleTable[code]);
-
-  //  vst1_u8(outData, vtbl2_u8(datahalves, vget_low_u8(encodingShuffle)));
-  //  vst1_u8(outData + 8, vtbl2_u8(datahalves, vget_high_u8(encodingShuffle)));
+#ifdef __aarch64__
   vst1q_u8(outData, vqtbl1q_u8(databytes, encodingShuffle));
+#else
+  uint8x8x2_t datahalves = {{vget_low_u8(databytes), vget_high_u8(databytes)}};
+  vst1_u8(outData, vtbl2_u8(datahalves, vget_low_u8(encodingShuffle)));
+  vst1_u8(outData + 8, vtbl2_u8(datahalves, vget_high_u8(encodingShuffle)));
+#endif
+
   *outCode = code;
   return length;
 }
@@ -131,26 +134,38 @@ inline size_t streamvbyte_encode_quad( uint32_t *__restrict__ in, uint8_t *__res
   return streamvbyte_encode4(inq, outData, outCode);
 }
 
-static inline uint8x16_t  _decode_neon(const uint8_t key,
+#ifdef __aarch64__
+typedef uint8x16_t decode_t;
+#else
+typedef uint8x8x2 decode_t;
+#endif
+static inline decode_t  _decode_neon(const uint8_t key,
 					const uint8_t * restrict *dataPtrPtr) {
 
   uint8x16_t decodingShuffle = vld1q_u8((uint8_t *) &shuffleTable[key]);
 
   uint8x16_t compressed = vld1q_u8(*dataPtrPtr);
-  //  uint8x8x2_t codehalves = {{vget_low_u8(compressed), vget_high_u8(compressed)}};
 
-  //uint8x8x2_t data = {{vtbl2_u8(codehalves, vget_low_u8(decodingShuffle)),
-  //  vtbl2_u8(codehalves, vget_high_u8(decodingShuffle))}};
-
+#ifdef __aarch64__
   uint8x16_t data = vqtbl1q_u8(compressed, decodingShuffle);
+#else
+  uint8x8x2_t codehalves = {{vget_low_u8(compressed), vget_high_u8(compressed)}};
+
+  uint8x8x2_t data = {{vtbl2_u8(codehalves, vget_low_u8(decodingShuffle)),
+		       vtbl2_u8(codehalves, vget_high_u8(decodingShuffle))}};
+#endif
   *dataPtrPtr += lengthTable[key];
   return data;
 }
 
 void streamvbyte_decode_quad( const uint8_t * restrict *dataPtrPtr, uint8_t key, uint32_t * restrict out ) {
-  uint8x16_t data =_decode_neon( key, dataPtrPtr );
+  decode_t data =_decode_neon( key, dataPtrPtr );
+#ifdef __aarch64__
   vst1q_u8((uint8_t *) out, data);
-  //  vst1_u8((uint8_t *) (out + 2), data.val[1]);
+#else
+  vst1_u8((uint8_t *) out, data.val[0]);
+  vst1_u8((uint8_t *) (out + 2), data.val[1]);
+#endif
 }
 
 const uint8_t *svb_decode_vector(uint32_t *out, const uint8_t *keyPtr, const uint8_t *dataPtr, uint32_t count) {
