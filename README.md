@@ -11,7 +11,7 @@ The approach is patent-free, the code is available under the Apache License.
 
 It includes fast differential coding.
 
-It assumes a recent Intel processor (e.g., haswell or better) .
+It assumes a recent Intel processor (e.g., haswell or better) or an ARM processor with NEON instructions (which is almost all of them).
 
 The code should build using most standard-compliant C99 compilers. The provided makefile
 expects a Linux-like system.
@@ -41,6 +41,20 @@ streamvbyte_delta_decode(compressedbuffer, recovdata, N,0); // decoding (fast)
 ```
 You have to know how many integers were coded when you decompress. You can store this 
 information along with the compressed stream.
+
+Installation
+----------------
+
+You can install the library (as a dynamic library) on your machine if you have root access:
+
+      sudo make install
+
+To uninstall, simply type:
+
+      sudo make uninstall
+
+It is recommended that you try ``make dyntest`` before proceeding.
+
 
 Technical posts
 ---------------

@@ -13,7 +13,7 @@
 
 int main() {
   int N = 500000;
-  int NTrials = 100;
+  int NTrials = 200;
   uint32_t datain[N];
   uint8_t compressedbuffer[N * 5];
   uint32_t recovdata[N];
@@ -23,25 +23,27 @@ int main() {
 
   size_t compsize = 0;
 
+  compsize = streamvbyte_encode(datain, N, compressedbuffer); // encoding
   //  uint64_t tsc, tsc2;
   //  rdtsc(&tsc);
   struct rusage before;
   getrusage(RUSAGE_SELF, &before);
 
+  size_t compsize2;
   for (int i = 0; i < NTrials; i++)
-    compsize = streamvbyte_encode(datain, N, compressedbuffer); // encoding
-
+    compsize2 = streamvbyte_decode(compressedbuffer, recovdata,
+                                        N); // decoding (fast)
   struct rusage after;
   getrusage(RUSAGE_SELF, &after);
 
   float t = (after.ru_utime.tv_usec-before.ru_utime.tv_usec)/1000000.0;
   printf("time = %f  %f uints/sec\n", t, N*NTrials/t); 
+
   //  rdtsc(&tsc2);
   //tsc2 -= tsc;
   //printf("cycles/quadword %llu\n", (4 * tsc2) / (N * 200));
   // here the result is stored in compressedbuffer using compsize bytes
-  size_t compsize2 = streamvbyte_decode(compressedbuffer, recovdata,
-                                        N); // decoding (fast)
+
 
   printf("compsize=%zu compsize2 = %zu\n", compsize, compsize2);
   //  assert(compsize == compsize2);

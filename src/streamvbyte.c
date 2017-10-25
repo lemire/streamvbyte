@@ -1,4 +1,5 @@
 #include "streamvbyte.h"
+
 #if defined(_MSC_VER)
 /* Microsoft C/C++-compatible compiler */
 #include <intrin.h>
@@ -76,6 +77,106 @@ static uint8_t *svb_encode_scalar(const uint32_t *in,
   return dataPtr; // pointer to first unused data byte
 }
 
+#ifdef __ARM_NEON__
+
+#include "streamvbyte_shuffle_tables.h"
+static const uint8_t pgatherlo[] = {12, 8, 4, 0, 12, 8, 4, 0}; // apparently only used in streamvbyte_encode4
+#define concat (1 | 1 << 10 | 1 << 20 | 1 << 30)
+#define sum (1 | 1 << 8 | 1 << 16 | 1 << 24)
+static const  uint32_t pAggregators[2] = {concat, sum}; // apparently only used in streamvbyte_encode4 
+
+static inline size_t streamvbyte_encode4(uint32x4_t data, uint8_t *__restrict__ outData, uint8_t *__restrict__ outCode) {
+
+  const uint8x8_t gatherlo = vld1_u8(pgatherlo);
+  const uint32x2_t Aggregators = vld1_u32(pAggregators);
+
+  // lane code is 3 - (saturating sub) (clz(data)/8)
+  uint32x4_t clzbytes = vshrq_n_u32(vclzq_u32(data), 3);
+  uint32x4_t lanecodes = vqsubq_u32(vdupq_n_u32(3), clzbytes);
+
+  // nops
+  uint8x16_t lanebytes = vreinterpretq_u8_u32(lanecodes);
+#ifdef __aarch64__
+  uint8x8_t lobytes = vqtbl1_u8( lanebytes, gatherlo );
+#else
+  uint8x8x2_t twohalves = {{vget_low_u8(lanebytes), vget_high_u8(lanebytes)}};
+
+  // shuffle lsbytes into two copies of an int
+  uint8x8_t lobytes = vtbl2_u8(twohalves, gatherlo);
+#endif
+
+  uint32x2_t mulshift = vreinterpret_u32_u8(lobytes);
+
+  uint32_t codeAndLength[2];
+  vst1_u32(codeAndLength, vmul_u32(mulshift, Aggregators));
+
+  uint32_t code = codeAndLength[0] >> 24;
+  size_t length = 4 + (codeAndLength[1] >> 24);
+
+  // shuffle in 8-byte chunks
+  uint8x16_t databytes = vreinterpretq_u8_u32(data);
+  uint8x16_t encodingShuffle = vld1q_u8((uint8_t *) &encodingShuffleTable[code]);
+#ifdef __aarch64__
+  vst1q_u8(outData, vqtbl1q_u8(databytes, encodingShuffle));
+#else
+  uint8x8x2_t datahalves = {{vget_low_u8(databytes), vget_high_u8(databytes)}};
+  vst1_u8(outData, vtbl2_u8(datahalves, vget_low_u8(encodingShuffle)));
+  vst1_u8(outData + 8, vtbl2_u8(datahalves, vget_high_u8(encodingShuffle)));
+#endif
+
+  *outCode = (uint8_t) code;
+  return length;
+}
+
+static inline size_t streamvbyte_encode_quad( uint32_t *__restrict__ in, uint8_t *__restrict__ outData, uint8_t *__restrict__ outCode) { 
+  uint32x4_t inq = vld1q_u32(in);
+  
+  return streamvbyte_encode4(inq, outData, outCode);
+}
+
+#ifdef __aarch64__
+typedef uint8x16_t decode_t;
+#else
+typedef uint8x8x2 decode_t;
+#endif
+static inline decode_t  _decode_neon(const uint8_t key,
+					const uint8_t * restrict *dataPtrPtr) {
+
+  uint8x16_t decodingShuffle = vld1q_u8((uint8_t *) &shuffleTable[key]);
+
+  uint8x16_t compressed = vld1q_u8(*dataPtrPtr);
+
+#ifdef __aarch64__
+  uint8x16_t data = vqtbl1q_u8(compressed, decodingShuffle);
+#else
+  uint8x8x2_t codehalves = {{vget_low_u8(compressed), vget_high_u8(compressed)}};
+
+  uint8x8x2_t data = {{vtbl2_u8(codehalves, vget_low_u8(decodingShuffle)),
+		       vtbl2_u8(codehalves, vget_high_u8(decodingShuffle))}};
+#endif
+  *dataPtrPtr += lengthTable[key];
+  return data;
+}
+
+static void streamvbyte_decode_quad( const uint8_t * restrict *dataPtrPtr, uint8_t key, uint32_t * restrict out ) {
+  decode_t data =_decode_neon( key, dataPtrPtr );
+#ifdef __aarch64__
+  vst1q_u8((uint8_t *) out, data);
+#else
+  vst1_u8((uint8_t *) out, data.val[0]);
+  vst1_u8((uint8_t *) (out + 2), data.val[1]);
+#endif
+}
+
+static const uint8_t *svb_decode_vector(uint32_t *out, const uint8_t *keyPtr, const uint8_t *dataPtr, uint32_t count) {
+  for(uint32_t i = 0; i < count/4; i++) 
+    streamvbyte_decode_quad( &dataPtr, keyPtr[i], out + 4*i );
+
+  return dataPtr;
+}
+
+#endif
+
 #ifdef __AVX__
 
 typedef union M128 {
@@ -124,27 +225,9 @@ size_t streamvbyte_encode4(__m128i in, uint8_t *outData, uint8_t *outCode) {
   return length;
 }
 
-static uint8_t *svb_encode_vector(const uint32_t *in,
-                                  uint8_t *__restrict__ keyPtr,
-                                  uint8_t *__restrict__ dataPtr,
-                                  uint32_t count) {
-
-  uint8_t *outData = dataPtr;
-  uint8_t *outKey = keyPtr;
-
-  uint32_t count4 = count / 4;
-
-  for (uint32_t c = 0; c < count4; c++) {
-    // doing (u128 *) (in + 4*c) is potentially unsafe due to
-    // alignment constraints
-    __m128i vin = _mm_loadu_si128((__m128i *)(in + 4 * c));
-    outData += streamvbyte_encode4(vin, outData, outKey);
-    outKey++;
-  }
-  outData =
-      svb_encode_scalar(in + 4 * count4, outKey, outData, count - 4 * count4);
-
-  return outData;
+size_t streamvbyte_encode_quad( uint32_t *in, uint8_t *outData, uint8_t *outKey) { 
+    __m128i vin = _mm_loadu_si128((__m128i *) in );
+    return streamvbyte_encode4(vin, outData, outKey);
 }
 
 #endif
@@ -155,11 +238,22 @@ size_t streamvbyte_encode(uint32_t *in, uint32_t count, uint8_t *out) {
   uint8_t *keyPtr = out;
   uint32_t keyLen = (count + 3) / 4;  // 2-bits rounded to full byte
   uint8_t *dataPtr = keyPtr + keyLen; // variable byte data after all keys
-#ifdef __AVX__
-  return svb_encode_vector(in, keyPtr, dataPtr, count) - out;
-#else
-  return svb_encode_scalar(in, keyPtr, dataPtr, count) - out;
+
+#if defined(__AVX__) || defined(__ARM_NEON__)
+
+  uint32_t count_quads = count / 4;
+  count -= 4 * count_quads;
+
+  for (uint32_t c = 0; c < count_quads; c++) {
+    dataPtr += streamvbyte_encode_quad(in, dataPtr, keyPtr);
+    keyPtr++;
+    in += 4;
+  }
+
 #endif
+
+  return svb_encode_scalar(in, keyPtr, dataPtr, count) - out;
+
 }
 
 #ifdef __AVX__ // though we do not require AVX per se, it is a macro that MSVC
@@ -300,8 +394,8 @@ const uint8_t *svb_decode_avx_simple(uint32_t *out,
       out += 32;
     }
   }
-  uint64_t consumedkeys = keybytes - (keybytes & 7);
-  return svb_decode_scalar(out, keyPtr + consumedkeys, dataPtr, count & 31);
+
+  return dataPtr;
 }
 
 #endif
@@ -311,12 +405,23 @@ const uint8_t *svb_decode_avx_simple(uint32_t *out,
 size_t streamvbyte_decode(const uint8_t *in, uint32_t *out, uint32_t count) {
   if (count == 0)
     return 0;
+
   const uint8_t *keyPtr = in;               // full list of keys is next
   uint32_t keyLen = ((count + 3) / 4);      // 2-bits per key (rounded up)
   const uint8_t *dataPtr = keyPtr + keyLen; // data starts at end of keys
+
 #ifdef __AVX__
-  return svb_decode_avx_simple(out, keyPtr, dataPtr, count) - in;
-#else
-  return svb_decode_scalar(out, keyPtr, dataPtr, count) - in;
+  dataPtr = svb_decode_avx_simple(out, keyPtr, dataPtr, count);
+  out += count & ~ 31;
+  keyPtr += (count/4) & ~ 7;
+  count &= 31;
+#elif defined(__ARM_NEON__)
+  dataPtr = svb_decode_vector(out, keyPtr, dataPtr, count);
+  out += count - (count & 3);
+  keyPtr += count/4;
+  count &= 3;
 #endif
+
+  return svb_decode_scalar(out, keyPtr, dataPtr, count) - in;
+
 }

@@ -4,8 +4,12 @@
 .SUFFIXES: .cpp .o .c .h
 
 PROCESSOR:=$(shell uname -m)
-ifeq ($(PROCESSOR), aarch64) 
-# for ARM processors
+
+ifeq ($(PROCESSOR), aarch64)
+# for 64-bit ARM processors
+CFLAGS = -fPIC -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow -D__ARM_NEON__
+else ifeq ($(PROCESSOR), armv7l) 
+# for 32-bit ARM processors
 CFLAGS = -fPIC -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow
 else
 # Here we expect x64
@@ -15,12 +19,16 @@ CFLAGS = -fPIC -march=native -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow
 endif
 LDFLAGS = -shared
 LIBNAME=libstreamvbyte.so.0.0.1
+LNLIBNAME=libstreamvbyte.so
 all:  unit $(LIBNAME)
 test:
 	./unit
-install: $(OBJECTS)
+dyntest:   dynunit $(LNLIBNAME)
+	LD_LIBRARY_PATH=. ./dynunit
+
+install: $(OBJECTS) $(LIBNAME)
 	cp $(LIBNAME) /usr/local/lib
-	ln -s /usr/local/lib/$(LIBNAME) /usr/local/lib/libstreamvbyte.so
+	ln -f -s /usr/local/lib/$(LIBNAME) /usr/local/lib/libstreamvbyte.so
 	ldconfig
 	cp $(HEADERS) /usr/local/include
 
@@ -51,6 +59,8 @@ streamvbyte.o: ./src/streamvbyte.c $(HEADERS)
 $(LIBNAME): $(OBJECTS)
 	$(CC) $(CFLAGS) -o $(LIBNAME) $(OBJECTS)  $(LDFLAGS)
 
+$(LNLIBNAME): $(LIBNAME)
+	ln -f -s $(LIBNAME) $(LNLIBNAME)
 
 shuffle_tables: ./utils/shuffle_tables.c 
 	$(CC) $(CFLAGS) -o shuffle_tables ./utils/shuffle_tables.c
@@ -63,14 +73,17 @@ example: ./example.c    $(HEADERS) $(OBJECTS)
 perf: ./tests/perf.c    $(HEADERS) $(OBJECTS)
 	$(CC) $(CFLAGS) -o perf ./tests/perf.c -Iinclude  $(OBJECTS)
 
+decode_perf: ./tests/decode_perf.c    $(HEADERS) $(OBJECTS)
+	$(CC) $(CFLAGS) -o decode_perf ./tests/decode_perf.c -Iinclude  $(OBJECTS)
+
 writeseq: ./tests/writeseq.c    $(HEADERS) $(OBJECTS)
 	$(CC) $(CFLAGS) -o writeseq ./tests/writeseq.c -Iinclude  $(OBJECTS)
 
 unit: ./tests/unit.c    $(HEADERS) $(OBJECTS)
 	$(CC) $(CFLAGS) -o unit ./tests/unit.c -Iinclude  $(OBJECTS)
 
-dynunit: ./tests/unit.c    $(HEADERS) $(LIBNAME)
-	$(CC) $(CFLAGS) -o dynunit ./tests/unit.c -Iinclude  -lstreamvbyte
+dynunit: ./tests/unit.c    $(HEADERS) $(LIBNAME) $(LNLIBNAME)
+	$(CC) $(CFLAGS) -o dynunit ./tests/unit.c -Iinclude  -L. -lstreamvbyte
 
 clean:
-	rm -f unit *.o $(LIBNAME) example shuffle_tables perf writeseq dynunit
+	rm -f unit *.o $(LIBNAME) $(LNLIBNAME) decode_perf example shuffle_tables perf writeseq dynunit

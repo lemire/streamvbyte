@@ -1,16 +1,14 @@
-/*
- * streamvbytedelta.h
- *
- *  Created on: Apr 14, 2016
- *      Author: lemire
- */
-
 #ifndef INCLUDE_STREAMVBYTEDELTA_H_
 #define INCLUDE_STREAMVBYTEDELTA_H_
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
+
+#include <inttypes.h>
+#include <stdint.h>// please use a C99-compatible compiler
+#include <stddef.h>
+
 
 // Encode an array of a given length read from in to bout in StreamVByte format.
 // Returns the number of bytes written.
