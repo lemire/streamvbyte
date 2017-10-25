@@ -96,11 +96,14 @@ inline size_t streamvbyte_encode4(uint32x4_t data, uint8_t *__restrict__ outData
 
   // nops
   uint8x16_t lanebytes = vreinterpretq_u8_u32(lanecodes);
+#ifdef __aarch64__
+  uint8x8_t lobytes = vqtbl1_u8( lanebytes, gatherlo );
+#else
   uint8x8x2_t twohalves = {{vget_low_u8(lanebytes), vget_high_u8(lanebytes)}};
 
   // shuffle lsbytes into two copies of an int
   uint8x8_t lobytes = vtbl2_u8(twohalves, gatherlo);
-
+#endif
   uint32x2_t mulshift = vreinterpret_u32_u8(lobytes);
 
   uint32_t codeAndLength[2];
