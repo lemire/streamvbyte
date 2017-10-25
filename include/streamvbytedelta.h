@@ -1,10 +1,3 @@
-/*
- * streamvbytedelta.h
- *
- *  Created on: Apr 14, 2016
- *      Author: lemire
- */
-
 #ifndef INCLUDE_STREAMVBYTEDELTA_H_
 #define INCLUDE_STREAMVBYTEDELTA_H_
 
