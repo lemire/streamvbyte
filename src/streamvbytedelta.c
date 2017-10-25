@@ -1,4 +1,4 @@
-#include "streamvbyte.h"
+#include "streamvbytedelta.h"
 #if defined(_MSC_VER)
 /* Microsoft C/C++-compatible compiler */
 #include <intrin.h>
@@ -208,7 +208,7 @@ static inline uint32_t _decode_data(const uint8_t **dataPtrPtr, uint8_t code) {
   return val;
 }
 
-const uint8_t *svb_decode_scalar_d1_init(uint32_t *outPtr,
+static const uint8_t *svb_decode_scalar_d1_init(uint32_t *outPtr,
                                          const uint8_t *keyPtr,
                                          const uint8_t *dataPtr, uint32_t count,
                                          uint32_t prev) {

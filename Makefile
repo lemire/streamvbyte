@@ -19,12 +19,16 @@ CFLAGS = -fPIC -march=native -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow
 endif
 LDFLAGS = -shared
 LIBNAME=libstreamvbyte.so.0.0.1
+LNLIBNAME=libstreamvbyte.so
 all:  unit $(LIBNAME)
 test:
 	./unit
-install: $(OBJECTS)
+dyntest:   dynunit $(LNLIBNAME)
+	LD_LIBRARY_PATH=. ./dynunit
+
+install: $(OBJECTS) $(LIBNAME)
 	cp $(LIBNAME) /usr/local/lib
-	ln -s /usr/local/lib/$(LIBNAME) /usr/local/lib/libstreamvbyte.so
+	ln -f -s /usr/local/lib/$(LIBNAME) /usr/local/lib/libstreamvbyte.so
 	ldconfig
 	cp $(HEADERS) /usr/local/include
 
@@ -55,6 +59,8 @@ streamvbyte.o: ./src/streamvbyte.c $(HEADERS)
 $(LIBNAME): $(OBJECTS)
 	$(CC) $(CFLAGS) -o $(LIBNAME) $(OBJECTS)  $(LDFLAGS)
 
+$(LNLIBNAME): $(LIBNAME)
+	ln -f -s $(LIBNAME) $(LNLIBNAME)
 
 shuffle_tables: ./utils/shuffle_tables.c 
 	$(CC) $(CFLAGS) -o shuffle_tables ./utils/shuffle_tables.c
@@ -76,8 +82,8 @@ writeseq: ./tests/writeseq.c    $(HEADERS) $(OBJECTS)
 unit: ./tests/unit.c    $(HEADERS) $(OBJECTS)
 	$(CC) $(CFLAGS) -o unit ./tests/unit.c -Iinclude  $(OBJECTS)
 
-dynunit: ./tests/unit.c    $(HEADERS) $(LIBNAME)
-	$(CC) $(CFLAGS) -o dynunit ./tests/unit.c -Iinclude  -lstreamvbyte
+dynunit: ./tests/unit.c    $(HEADERS) $(LIBNAME) $(LNLIBNAME)
+	$(CC) $(CFLAGS) -o dynunit ./tests/unit.c -Iinclude  -L. -lstreamvbyte
 
 clean:
-	rm -f unit *.o $(LIBNAME) example shuffle_tables perf writeseq dynunit
+	rm -f unit *.o $(LIBNAME) $(LNLIBNAME) decode_perf example shuffle_tables perf writeseq dynunit

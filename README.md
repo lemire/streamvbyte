@@ -42,6 +42,20 @@ streamvbyte_delta_decode(compressedbuffer, recovdata, N,0); // decoding (fast)
 You have to know how many integers were coded when you decompress. You can store this 
 information along with the compressed stream.
 
+Installation
+----------------
+
+You can install the library (as a dynamic library) on your machine if you have root access:
+
+      sudo make install
+
+To uninstall, simply type:
+
+      sudo make uninstall
+
+It is recommended that you try ``make dyntest`` before proceeding.
+
+
 Technical posts
 ---------------
 

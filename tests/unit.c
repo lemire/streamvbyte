@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-bool isLittleEndian() {
+static bool isLittleEndian() {
   int x = 1;
   char *c = (char *)&x;
   return (*c == 1);

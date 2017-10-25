@@ -80,10 +80,10 @@ static uint8_t *svb_encode_scalar(const uint32_t *in,
 #ifdef __ARM_NEON__
 
 #include "streamvbyte_shuffle_tables.h"
-const uint8_t pgatherlo[] = {12, 8, 4, 0, 12, 8, 4, 0};
+static const uint8_t pgatherlo[] = {12, 8, 4, 0, 12, 8, 4, 0}; // apparently only used in streamvbyte_encode4
 #define concat (1 | 1 << 10 | 1 << 20 | 1 << 30)
 #define sum (1 | 1 << 8 | 1 << 16 | 1 << 24)
-const  uint32_t pAggregators[2] = {concat, sum};
+static const  uint32_t pAggregators[2] = {concat, sum}; // apparently only used in streamvbyte_encode4 
 
 static inline size_t streamvbyte_encode4(uint32x4_t data, uint8_t *__restrict__ outData, uint8_t *__restrict__ outCode) {
 
@@ -124,7 +124,7 @@ static inline size_t streamvbyte_encode4(uint32x4_t data, uint8_t *__restrict__ 
   vst1_u8(outData + 8, vtbl2_u8(datahalves, vget_high_u8(encodingShuffle)));
 #endif
 
-  *outCode = code;
+  *outCode = (uint8_t) code;
   return length;
 }
 
@@ -158,7 +158,7 @@ static inline decode_t  _decode_neon(const uint8_t key,
   return data;
 }
 
-void streamvbyte_decode_quad( const uint8_t * restrict *dataPtrPtr, uint8_t key, uint32_t * restrict out ) {
+static void streamvbyte_decode_quad( const uint8_t * restrict *dataPtrPtr, uint8_t key, uint32_t * restrict out ) {
   decode_t data =_decode_neon( key, dataPtrPtr );
 #ifdef __aarch64__
   vst1q_u8((uint8_t *) out, data);
@@ -168,7 +168,7 @@ void streamvbyte_decode_quad( const uint8_t * restrict *dataPtrPtr, uint8_t key,
 #endif
 }
 
-const uint8_t *svb_decode_vector(uint32_t *out, const uint8_t *keyPtr, const uint8_t *dataPtr, uint32_t count) {
+static const uint8_t *svb_decode_vector(uint32_t *out, const uint8_t *keyPtr, const uint8_t *dataPtr, uint32_t count) {
   for(uint32_t i = 0; i < count/4; i++) 
     streamvbyte_decode_quad( &dataPtr, keyPtr[i], out + 4*i );
 

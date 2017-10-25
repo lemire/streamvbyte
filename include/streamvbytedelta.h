@@ -5,6 +5,11 @@
 extern "C" {
 #endif
 
+#include <inttypes.h>
+#include <stdint.h>// please use a C99-compatible compiler
+#include <stddef.h>
+
+
 // Encode an array of a given length read from in to bout in StreamVByte format.
 // Returns the number of bytes written.
 // The number of values being stored (length) is not encoded in the compressed stream,
