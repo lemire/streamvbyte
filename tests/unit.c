@@ -79,7 +79,9 @@ int main() {
            "little endian systems.\n");
   }
 #ifdef __AVX__
-  printf("Code was vectorized.\n");
+  printf("Code was vectorized (x64).\n");
+#elif defined(__ARM_NEON__)
+  printf("Code was vectorized (ARM NEON).\n");
 #else
   printf("Warning: you tested non-vectorized code.\n");
 #endif
