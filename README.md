@@ -55,6 +55,15 @@ To uninstall, simply type:
 
 It is recommended that you try ``make dyntest`` before proceeding.
 
+Benchmarking
+-----------------
+
+You can try to benchmark the decoding speed in this manner:
+
+      make decode_perf
+      ./decode_perf
+
+Make sure to run ``make test`` before, as a sanity test.
 
 Technical posts
 ---------------
