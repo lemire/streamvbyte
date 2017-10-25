@@ -167,11 +167,6 @@ typedef union M128 {
   __m128i i128;
 } u128;
 
-size_t streamvbyte_encode_quad( uint32_t *in, uint8_t *outData, uint8_t *outCode) { 
-    __m128i vin = _mm_loadu_si128((__m128i *) in );
-    outData += streamvbyte_encode4(vin, outData, outKey);
-}
-
 size_t streamvbyte_encode4(__m128i in, uint8_t *outData, uint8_t *outCode) {
 
   const u128 Ones = {.i8 = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}};
@@ -210,6 +205,11 @@ size_t streamvbyte_encode4(__m128i in, uint8_t *outData, uint8_t *outCode) {
   _mm_storeu_si128((__m128i *)outData, outAligned);
   *outCode = code;
   return length;
+}
+
+size_t streamvbyte_encode_quad( uint32_t *in, uint8_t *outData, uint8_t *outKey) { 
+    __m128i vin = _mm_loadu_si128((__m128i *) in );
+    return streamvbyte_encode4(vin, outData, outKey);
 }
 
 #endif
