@@ -27,6 +27,7 @@
 #endif
 #include <string.h> // for memcpy
 
+
 static uint8_t _encode_data(uint32_t val, uint8_t *__restrict__ *dataPtrPtr) {
   uint8_t *dataPtr = *dataPtrPtr;
   uint8_t code;
@@ -137,7 +138,7 @@ static inline size_t streamvbyte_encode_quad( uint32_t *__restrict__ in, uint8_t
 #ifdef __aarch64__
 typedef uint8x16_t decode_t;
 #else
-typedef uint8x8x2 decode_t;
+typedef uint8x8x2_t decode_t;
 #endif
 static inline decode_t  _decode_neon(const uint8_t key,
 					const uint8_t * restrict *dataPtrPtr) {
