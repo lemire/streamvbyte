@@ -227,7 +227,7 @@ size_t streamvbyte_encode4(__m128i in, uint8_t *outData, uint8_t *outCode) {
 }
 
 size_t streamvbyte_encode_quad( uint32_t *in, uint8_t *outData, uint8_t *outKey) { 
-    __m128i vin = _mm_loadu_si128((__m128i *) in );
+    __m128i vin = _mm_stream_load_si128((__m128i *) in );
     return streamvbyte_encode4(vin, outData, outKey);
 }
 
@@ -272,7 +272,8 @@ static inline __m128i _decode_avx(uint32_t key,
 }
 
 static inline void _write_avx(uint32_t *out, __m128i Vec) {
-  _mm_storeu_si128((__m128i *)out, Vec);
+  //_mm_storeu_si128((__m128i *)out, Vec);
+    _mm_stream_si128((__m128i *)out, Vec);
 }
 
 #endif // __AVX__
