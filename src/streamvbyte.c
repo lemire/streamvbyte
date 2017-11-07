@@ -264,8 +264,9 @@ static inline __m128i _decode_avx(uint32_t key,
                                   const uint8_t *__restrict__ *dataPtrPtr) {
   uint8_t len;
   __m128i Data = _mm_loadu_si128((__m128i *)*dataPtrPtr);
-  __m128i Shuf = *(__m128i *)&shuffleTable[key];
-  len = _mm_extract_epi8(Shuf, 12 + (key >> 6) ) + 1;
+  uint8_t *pshuf = &shuffleTable[key];
+  __m128i Shuf = *(__m128i *)pshuf;
+  len = pshuf[12 + (key >> 6)] + 1;
   Data = _mm_shuffle_epi8(Data, Shuf);
   *dataPtrPtr += len;
   return Data;
