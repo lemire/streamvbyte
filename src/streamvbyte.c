@@ -143,10 +143,18 @@ typedef uint8x8x2_t decode_t;
 static inline decode_t  _decode_neon(const uint8_t key,
 					const uint8_t * restrict *dataPtrPtr) {
 
-  uint8x16_t decodingShuffle = vld1q_u8((uint8_t *) &shuffleTable[key]);
+  uint8_t len;
+  uint8_t *pshuf = &shuffleTable[key];
+  uint8x16_t decodingShuffle = vld1q_u8(pshuf);
 
   uint8x16_t compressed = vld1q_u8(*dataPtrPtr);
-
+#ifdef AVOIDLENGTHLOOKUP
+  // this avoids the dependency on lengthTable, 
+  // see https://github.com/lemire/streamvbyte/issues/12
+  len = pshuf[12 + (key >> 6)] + 1;
+#else
+  len = lengthTable[key];
+#endif 
 #ifdef __aarch64__
   uint8x16_t data = vqtbl1q_u8(compressed, decodingShuffle);
 #else
@@ -155,7 +163,7 @@ static inline decode_t  _decode_neon(const uint8_t key,
   uint8x8x2_t data = {{vtbl2_u8(codehalves, vget_low_u8(decodingShuffle)),
 		       vtbl2_u8(codehalves, vget_high_u8(decodingShuffle))}};
 #endif
-  *dataPtrPtr += lengthTable[key];
+  *dataPtrPtr += len;
   return data;
 }
 
@@ -266,7 +274,13 @@ static inline __m128i _decode_avx(uint32_t key,
   __m128i Data = _mm_loadu_si128((__m128i *)*dataPtrPtr);
   uint8_t *pshuf = &shuffleTable[key];
   __m128i Shuf = *(__m128i *)pshuf;
+#ifdef AVOIDLENGTHLOOKUP
+  // this avoids the dependency on lengthTable, 
+  // see https://github.com/lemire/streamvbyte/issues/12
   len = pshuf[12 + (key >> 6)] + 1;
+#else
+  len = lengthTable[key];
+#endif 
   Data = _mm_shuffle_epi8(Data, Shuf);
   *dataPtrPtr += len;
   return Data;
