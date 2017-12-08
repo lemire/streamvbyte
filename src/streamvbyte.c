@@ -195,41 +195,33 @@ typedef union M128 {
 } u128;
 
 size_t streamvbyte_encode4(__m128i in, uint8_t *outData, uint8_t *outCode) {
+  const __m128i Ones = _mm_set1_epi32(0x01010101);
+  const __m128i GatherBits = _mm_set1_epi32(0x02040001);
+  const __m128i CodeTable = _mm_set_epi32(0, 0, 0x03020301, 0x03020300);
+  const __m128i GatherBytes = _mm_set_epi32(0, 0, 0x0D090501, 0x0D090501);
+  const __m128i Aggregators = _mm_set_epi32(0, 0, 0x01010101, 0x10400104);
 
-  const u128 Ones = {.i8 = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}};
+  __m128i m0, m1;
+  m0 = _mm_min_epu8(in, Ones); // set byte to 1 if it is not zero
+  m0 = _mm_madd_epi16(m0, GatherBits); // gather bits 8,16,24 to bits 8,9,10
+  m1 = _mm_shuffle_epi8(CodeTable, m0); // translate to a 2-bit encoded symbol
+  m1 = _mm_shuffle_epi8(m1, GatherBytes); // gather bytes holding symbols; 2 copies
+  m1 = _mm_madd_epi16(m1, Aggregators); // sum dword_1, pack dword_0
 
-// bithack 3 byte lsb's shift/or into high byte via multiply
-#define shifter (1 | 1 << 9 | 1 << 18)
-  const u128 Shifts = {.u32 = {shifter, shifter, shifter, shifter}};
+  // extract data length and decode key
+#if SIZE_MAX == UINT64_MAX
+  uint64_t q = (uint64_t)_mm_cvtsi128_si64(m1); // not defined in 32-bit builds
+  uint8_t code = (uint8_t)(q >> 8);
+  size_t length = 4 + ((q >> 40) & 0xFF);
+#else
+  uint8_t code = (uint8_t)(((size_t)_mm_cvtsi128_si32(m1)) >> 8);
+  size_t length = 4 + (((size_t)_mm_extract_epi16(m1, 2)) >> 8);
+#endif
 
-  // translate 3-bit maps into lane codes
-  const u128 LaneCodes = {
-      .i8 = {0, 3, 2, 3, 1, 3, 2, 3, -1, -1, -1, -1, -1, -1, -1, -1}};
-
-  // gather high bytes from each lane, 2 copies
-  const u128 GatherHi = {
-      .i8 = {15, 11, 7, 3, 15, 11, 7, 3, -1, -1, -1, -1, -1, -1, -1, -1}};
-
-// mul-shift magic numbers
-// concatenate 2-bit lane codes into high byte
-#define concat (1 | 1 << 10 | 1 << 20 | 1 << 30)
-// sum lane codes in high byte
-#define sum (1 | 1 << 8 | 1 << 16 | 1 << 24)
-  const u128 Aggregators = {.u32 = {concat, sum, 0, 0}};
-
-  __m128i mins = _mm_min_epu8(in, Ones.i128);
-  __m128i bytemaps = _mm_mullo_epi32(mins, Shifts.i128);
-  __m128i lanecodes = _mm_shuffle_epi8(LaneCodes.i128, bytemaps);
-  __m128i hibytes = _mm_shuffle_epi8(lanecodes, GatherHi.i128);
-
-  u128 codeAndLength = {.i128 = _mm_mullo_epi32(hibytes, Aggregators.i128)};
-  uint8_t code = codeAndLength.i8[3];
-  size_t length = codeAndLength.i8[7] + 4;
-
-  __m128i Shuf = *(__m128i *)&encodingShuffleTable[code];
-  __m128i outAligned = _mm_shuffle_epi8(in, Shuf);
-
-  _mm_storeu_si128((__m128i *)outData, outAligned);
+  __m128* shuf = (__m128i*)(((uint8_t*)encodingShuffleTable) + code * 16);
+  __m128i out = _mm_shuffle_epi8(in, _mm_loadu_si128(shuf)); // todo: aligned access
+	
+  _mm_storeu_si128((__m128i *)outData, out);
   *outCode = code;
   return length;
 }
