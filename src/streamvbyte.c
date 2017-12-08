@@ -188,12 +188,6 @@ static const uint8_t *svb_decode_vector(uint32_t *out, const uint8_t *keyPtr, co
 
 #ifdef __AVX__
 
-typedef union M128 {
-  char i8[16];
-  uint32_t u32[4];
-  __m128i i128;
-} u128;
-
 size_t streamvbyte_encode4(__m128i in, uint8_t *outData, uint8_t *outCode) {
   const __m128i Ones = _mm_set1_epi32(0x01010101);
   const __m128i GatherBits = _mm_set1_epi32(0x02040001);
