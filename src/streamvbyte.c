@@ -212,7 +212,7 @@ size_t streamvbyte_encode4(__m128i in, uint8_t *outData, uint8_t *outCode) {
   size_t length = 4 + (((size_t)_mm_extract_epi16(m1, 2)) >> 8);
 #endif
 
-  __m128* shuf = (__m128i*)(((uint8_t*)encodingShuffleTable) + code * 16);
+  __m128i* shuf = (__m128i*)(((uint8_t*)encodingShuffleTable) + code * 16);
   __m128i out = _mm_shuffle_epi8(in, _mm_loadu_si128(shuf)); // todo: aligned access
 	
   _mm_storeu_si128((__m128i *)outData, out);
