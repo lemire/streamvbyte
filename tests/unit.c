@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 static bool isLittleEndian() {
   int x = 1;
@@ -10,7 +11,8 @@ static bool isLittleEndian() {
   return (*c == 1);
 }
 
-int main() {
+// return -1 in case of failure
+int basictests() {
   int N = 4096;
   uint32_t *datain = malloc(N * sizeof(uint32_t));
   // on purpose we mess with the alignment of compressedbufferorig
@@ -70,6 +72,58 @@ int main() {
   free(datain);
   free(compressedbufferorig);
   free(recovdata);
+  return 0;
+}
+// return -1 in case of failure
+int aqrittests() {
+  uint8_t in[16];
+  uint8_t compressedbuffer[32];
+  uint8_t recovdata[16];
+
+  memset(compressedbuffer, 0, 32);
+  memset(recovdata, 0, 16);
+
+  for (int i = 0; i < 0x10000; i++) {
+    in[0] = (uint8_t)((i >> 0) & 1);
+    in[1] = (uint8_t)((i >> 1) & 1);
+    in[2] = (uint8_t)((i >> 2) & 1);
+    in[3] = (uint8_t)((i >> 3) & 1);
+    in[4] = (uint8_t)((i >> 4) & 1);
+    in[5] = (uint8_t)((i >> 5) & 1);
+    in[6] = (uint8_t)((i >> 6) & 1);
+    in[7] = (uint8_t)((i >> 7) & 1);
+    in[8] = (uint8_t)((i >> 8) & 1);
+    in[9] = (uint8_t)((i >> 9) & 1);
+    in[10] = (uint8_t)((i >> 10) & 1);
+    in[11] = (uint8_t)((i >> 11) & 1);
+    in[12] = (uint8_t)((i >> 12) & 1);
+    in[13] = (uint8_t)((i >> 13) & 1);
+    in[14] = (uint8_t)((i >> 14) & 1);
+    in[15] = (uint8_t)((i >> 15) & 1);
+    const int length = 4;
+    size_t compsize =
+        streamvbyte_encode((uint32_t *)in, length, compressedbuffer);
+    size_t usedbytes =
+        streamvbyte_decode(compressedbuffer, (uint32_t *)recovdata, length);
+    if (compsize != usedbytes) {
+      printf("[aqrittests] code is buggy");
+      return -1;
+    }
+    for (size_t k = 0; k < length * sizeof(uint32_t); ++k) {
+      if (recovdata[k] != in[k]) {
+        printf("[aqrittests] code is buggy");
+        return -1;
+      }
+    }
+  }
+  return 0;
+}
+
+int main() {
+  if (basictests() == -1)
+    return -1;
+  if (aqrittests() == -1)
+    return -1;
   printf("Code looks good.\n");
   if (isLittleEndian()) {
     printf("And you have a little endian architecture.\n");
