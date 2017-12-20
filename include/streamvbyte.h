@@ -1,6 +1,6 @@
 
-#ifndef VARINTDECODE_H_
-#define VARINTDECODE_H_
+#ifndef INCLUDE_STREAMVBYTE_H_
+#define INCLUDE_STREAMVBYTE_H_
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 #include <stdint.h>// please use a C99-compatible compiler
@@ -42,4 +42,4 @@ size_t streamvbyte_decode(const uint8_t *in, uint32_t *out, uint32_t length);
 };
 #endif
 
-#endif /* VARINTDECODE_H_ */
+#endif /* INCLUDE_STREAMVBYTE_H_ */
