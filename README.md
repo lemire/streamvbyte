@@ -16,7 +16,7 @@ It assumes a recent Intel processor (e.g., haswell or better) or an ARM processo
 The code should build using most standard-compliant C99 compilers. The provided makefile
 expects a Linux-like system.
 
-This library is used by the  [Tantivy search engine](https://github.com/tantivy-search/tantivy) and by the  [Trinity Information Retrieval framework](https://github.com/phaistos-networks/Trinity).
+This library is used by [UpscaleDB](https://github.com/cruppstahl/upscaledb), the  [Tantivy search engine](https://github.com/tantivy-search/tantivy) and by the  [Trinity Information Retrieval framework](https://github.com/phaistos-networks/Trinity).
 
 
 
