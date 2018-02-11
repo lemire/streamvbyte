@@ -203,20 +203,14 @@ size_t streamvbyte_encode4(__m128i in, uint8_t *outData, uint8_t *outCode) {
   m1 = _mm_madd_epi16(m1, Aggregators); // sum dword_1, pack dword_0
 
   // extract data length and decode key
-#if SIZE_MAX == UINT64_MAX
-  uint64_t q = (uint64_t)_mm_cvtsi128_si64(m1); // not defined in 32-bit builds
-  uint8_t code = (uint8_t)(q >> 8);
-  size_t length = 4 + ((q >> 40) & 0xFF);
-#else
-  uint8_t code = (uint8_t)(((size_t)_mm_cvtsi128_si32(m1)) >> 8);
-  size_t length = 4 + (((size_t)_mm_extract_epi16(m1, 2)) >> 8);
-#endif
+  size_t code = (size_t)_mm_extract_epi8(m1, 1);
+  size_t length = 4 + (size_t)_mm_extract_epi8(m1, 5);
 
   __m128i* shuf = (__m128i*)(((uint8_t*)encodingShuffleTable) + code * 16);
   __m128i out = _mm_shuffle_epi8(in, _mm_loadu_si128(shuf)); // todo: aligned access
 	
   _mm_storeu_si128((__m128i *)outData, out);
-  *outCode = code;
+  *outCode = (uint8_t)code;
   return length;
 }
 
