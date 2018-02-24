@@ -20,10 +20,30 @@ This library is used by [UpscaleDB](https://github.com/cruppstahl/upscaledb), th
 
 
 
-Usage:
+Usage with Makefile:
 
       make
       ./unit
+
+Usage with CMake:
+
+The cmake build system also offers a `libstreamvbyte_static.a` in addition to
+`libstreamvbyte.so`. 
+
+`-DCMAKE_INSTALL_PREFIX:PATH=/path/to/install` is optional. 
+Defaults to /usr/local{include,lib}
+
+```
+mkdir build
+cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release \
+         -DCMAKE_INSTALL_PREFIX:PATH=/path/to/install \
+make install
+
+# run the tests like:
+ctest -V
+
+```
 
 See example.c for an example.
 
