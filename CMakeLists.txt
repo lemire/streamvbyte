@@ -30,11 +30,6 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64.*|AARCH64.*)")
     "-D__ARM_NEON__"
     )
 endif()
-
-# build libs
-include_directories(
-  ${PROJECT_SOURCE_DIR}/include
-  )
 set(STREAMVBYTE_SRCS
   ${PROJECT_SOURCE_DIR}/src/streamvbyte.c
   ${PROJECT_SOURCE_DIR}/src/streamvbytedelta.c
@@ -43,6 +38,14 @@ add_library(streamvbyte_static STATIC "${STREAMVBYTE_SRCS}")
 target_link_libraries(streamvbyte_static ${BASE_FLAGS})
 add_library(streamvbyte SHARED "${STREAMVBYTE_SRCS}")
 target_link_libraries(streamvbyte ${BASE_FLAGS})
+target_include_directories(
+  streamvbyte
+  PUBLIC ${PROJECT_SOURCE_DIR}/include
+)
+target_include_directories(
+  streamvbyte_static
+  PUBLIC ${PROJECT_SOURCE_DIR}/include
+)
 install(FILES
   ${PROJECT_SOURCE_DIR}/include/streamvbyte.h
   ${PROJECT_SOURCE_DIR}/include/streamvbytedelta.h
