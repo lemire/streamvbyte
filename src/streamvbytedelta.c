@@ -23,7 +23,7 @@
 #ifdef __AVX__
 
 #include "streamvbyte_shuffle_tables.h"
-
+size_t streamvbyte_encode4(__m128i in, uint8_t *outData, uint8_t *outCode);
 #endif
 
 #include <string.h> // for memcpy
@@ -115,7 +115,7 @@ static uint8_t *svb_encode_vector_d1_init(const uint32_t *in,
 
 #endif
 
-size_t streamvbyte_delta_encode(uint32_t *in, uint32_t count, uint8_t *out,
+size_t streamvbyte_delta_encode(const uint32_t *in, uint32_t count, uint8_t *out,
                                 uint32_t prev) {
   uint8_t *keyPtr = out;             // keys come immediately after 32-bit count
   uint32_t keyLen = (count + 3) / 4; // 2-bits rounded to full byte

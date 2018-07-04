@@ -19,7 +19,7 @@ extern "C" {
 // this version uses differential coding (coding differences between values) starting at prev (you can often set prev to zero)
 // For safety, the out pointer should point to at least streamvbyte_max_compressedbyte(length)
 // bytes ( see streamvbyte.h )
-size_t streamvbyte_delta_encode(uint32_t *in, uint32_t length, uint8_t *out, uint32_t prev);
+size_t streamvbyte_delta_encode(const uint32_t *in, uint32_t length, uint8_t *out, uint32_t prev);
 
 // Read "length" 32-bit integers in StreamVByte format from in, storing the result in out.
 // Returns the number of bytes read.

@@ -84,7 +84,7 @@ static uint8_t *svb_encode_scalar(const uint32_t *in,
 static const uint8_t pgatherlo[] = {12, 8, 4, 0, 12, 8, 4, 0}; // apparently only used in streamvbyte_encode4
 #define concat (1 | 1 << 10 | 1 << 20 | 1 << 30)
 #define sum (1 | 1 << 8 | 1 << 16 | 1 << 24)
-static const  uint32_t pAggregators[2] = {concat, sum}; // apparently only used in streamvbyte_encode4 
+static const  uint32_t pAggregators[2] = {concat, sum}; // apparently only used in streamvbyte_encode4
 
 static inline size_t streamvbyte_encode4(uint32x4_t data, uint8_t *__restrict__ outData, uint8_t *__restrict__ outCode) {
 
@@ -129,9 +129,9 @@ static inline size_t streamvbyte_encode4(uint32x4_t data, uint8_t *__restrict__ 
   return length;
 }
 
-static inline size_t streamvbyte_encode_quad( uint32_t *__restrict__ in, uint8_t *__restrict__ outData, uint8_t *__restrict__ outCode) { 
+static inline size_t streamvbyte_encode_quad(const uint32_t *__restrict__ in, uint8_t *__restrict__ outData, uint8_t *__restrict__ outCode) {
   uint32x4_t inq = vld1q_u32(in);
-  
+
   return streamvbyte_encode4(inq, outData, outCode);
 }
 
@@ -149,12 +149,12 @@ static inline decode_t  _decode_neon(const uint8_t key,
 
   uint8x16_t compressed = vld1q_u8(*dataPtrPtr);
 #ifdef AVOIDLENGTHLOOKUP
-  // this avoids the dependency on lengthTable, 
+  // this avoids the dependency on lengthTable,
   // see https://github.com/lemire/streamvbyte/issues/12
   len = pshuf[12 + (key >> 6)] + 1;
 #else
   len = lengthTable[key];
-#endif 
+#endif
 #ifdef __aarch64__
   uint8x16_t data = vqtbl1q_u8(compressed, decodingShuffle);
 #else
@@ -178,7 +178,7 @@ static void streamvbyte_decode_quad( const uint8_t * restrict *dataPtrPtr, uint8
 }
 
 static const uint8_t *svb_decode_vector(uint32_t *out, const uint8_t *keyPtr, const uint8_t *dataPtr, uint32_t count) {
-  for(uint32_t i = 0; i < count/4; i++) 
+  for(uint32_t i = 0; i < count/4; i++)
     streamvbyte_decode_quad( &dataPtr, keyPtr[i], out + 4*i );
 
   return dataPtr;
@@ -208,13 +208,13 @@ size_t streamvbyte_encode4(__m128i in, uint8_t *outData, uint8_t *outCode) {
 
   __m128i* shuf = (__m128i*)(((uint8_t*)encodingShuffleTable) + code * 16);
   __m128i out = _mm_shuffle_epi8(in, _mm_loadu_si128(shuf)); // todo: aligned access
-	
+
   _mm_storeu_si128((__m128i *)outData, out);
   *outCode = (uint8_t)code;
   return length;
 }
 
-size_t streamvbyte_encode_quad( uint32_t *in, uint8_t *outData, uint8_t *outKey) { 
+size_t streamvbyte_encode_quad(const uint32_t *in, uint8_t *outData, uint8_t *outKey) {
     __m128i vin = _mm_loadu_si128((__m128i *) in );
     return streamvbyte_encode4(vin, outData, outKey);
 }
@@ -223,7 +223,7 @@ size_t streamvbyte_encode_quad( uint32_t *in, uint8_t *outData, uint8_t *outKey)
 
 // Encode an array of a given length read from in to bout in streamvbyte format.
 // Returns the number of bytes written.
-size_t streamvbyte_encode(uint32_t *in, uint32_t count, uint8_t *out) {
+size_t streamvbyte_encode(const uint32_t *in, uint32_t count, uint8_t *out) {
   uint8_t *keyPtr = out;
   uint32_t keyLen = (count + 3) / 4;  // 2-bits rounded to full byte
   uint8_t *dataPtr = keyPtr + keyLen; // variable byte data after all keys
@@ -255,12 +255,12 @@ static inline __m128i _decode_avx(uint32_t key,
   uint8_t *pshuf = &shuffleTable[key];
   __m128i Shuf = *(__m128i *)pshuf;
 #ifdef AVOIDLENGTHLOOKUP
-  // this avoids the dependency on lengthTable, 
+  // this avoids the dependency on lengthTable,
   // see https://github.com/lemire/streamvbyte/issues/12
   len = pshuf[12 + (key >> 6)] + 1;
 #else
   len = lengthTable[key];
-#endif 
+#endif
   Data = _mm_shuffle_epi8(Data, Shuf);
   *dataPtrPtr += len;
   return Data;

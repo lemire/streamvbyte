@@ -18,10 +18,10 @@ extern "C" {
 // there is no alignment requirement on the out pointer
 // For safety, the out pointer should point to at least streamvbyte_max_compressedbyte(length)
 // bytes.
-size_t streamvbyte_encode(uint32_t *in, uint32_t length, uint8_t *out);
+size_t streamvbyte_encode(const uint32_t *in, uint32_t length, uint8_t *out);
 
 // return the maximum number of compressed bytes given length input integers
-static size_t streamvbyte_max_compressedbytes(uint32_t length) {
+static size_t streamvbyte_max_compressedbytes(const uint32_t length) {
    // number of control bytes:
    size_t cb = (length + 3) / 4;
    // maximum number of control bytes:
