@@ -8,14 +8,14 @@ PROCESSOR:=$(shell uname -m)
 ifeq ($(PROCESSOR), aarch64)
 # for 64-bit ARM processors
 CFLAGS = -fPIC -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow -D__ARM_NEON__
-else ifeq ($(PROCESSOR), armv7l) 
+else ifeq ($(PROCESSOR), armv7l)
 # for 32-bit ARM processors
 CFLAGS = -fPIC -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow
 else
 # Here we expect x64
 # Formally speaking, we only need SSE4, at best, but code checks for AVX
 # since MSVC only allows to check for AVX and nothing finer like just SSE4
-CFLAGS = -fPIC -march=native -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow 
+CFLAGS = -fPIC -march=native -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow
 endif
 LDFLAGS = -shared
 LIBNAME=libstreamvbyte.so.0.0.1
@@ -34,7 +34,7 @@ install: $(OBJECTS) $(LIBNAME)
 
 
 
-HEADERS=./include/streamvbyte.h ./include/streamvbytedelta.h 
+HEADERS=./include/streamvbyte.h ./include/streamvbytedelta.h
 
 uninstall:
 	for h in $(HEADERS) ; do rm  /usr/local/$$h; done
@@ -43,7 +43,7 @@ uninstall:
 	ldconfig
 
 
-OBJECTS= streamvbyte.o streamvbytedelta.o
+OBJECTS= streamvbyte.o streamvbytedelta.o streamvbyte_0124.o
 
 
 
@@ -54,6 +54,8 @@ streamvbytedelta.o: ./src/streamvbytedelta.c $(HEADERS)
 streamvbyte.o: ./src/streamvbyte.c $(HEADERS)
 	$(CC) $(CFLAGS) -c ./src/streamvbyte.c -Iinclude
 
+streamvbyte_0124.o: ./src/streamvbyte_0124.c $(HEADERS)
+	$(CC) $(CFLAGS) -c ./src/streamvbyte_0124.c -Iinclude
 
 
 $(LIBNAME): $(OBJECTS)
@@ -62,7 +64,7 @@ $(LIBNAME): $(OBJECTS)
 $(LNLIBNAME): $(LIBNAME)
 	ln -f -s $(LIBNAME) $(LNLIBNAME)
 
-shuffle_tables: ./utils/shuffle_tables.c 
+shuffle_tables: ./utils/shuffle_tables.c
 	$(CC) $(CFLAGS) -o shuffle_tables ./utils/shuffle_tables.c
 
 
