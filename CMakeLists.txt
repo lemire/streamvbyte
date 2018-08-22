@@ -31,8 +31,10 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64.*|AARCH64.*)")
     )
 endif()
 set(STREAMVBYTE_SRCS
-  ${PROJECT_SOURCE_DIR}/src/streamvbyte.c
-  ${PROJECT_SOURCE_DIR}/src/streamvbytedelta.c
+  ${PROJECT_SOURCE_DIR}/src/streamvbyte_encode.c
+  ${PROJECT_SOURCE_DIR}/src/streamvbyte_decode.c
+  ${PROJECT_SOURCE_DIR}/src/streamvbytedelta_encode.c
+  ${PROJECT_SOURCE_DIR}/src/streamvbytedelta_decode.c
   ${PROJECT_SOURCE_DIR}/src/streamvbyte_0124.c
   )
 add_library(streamvbyte_static STATIC "${STREAMVBYTE_SRCS}")
@@ -64,13 +66,10 @@ target_link_libraries (example streamvbyte_static)
 # perf
 add_executable (perf ${PROJECT_SOURCE_DIR}/tests/perf.c)
 target_link_libraries (perf streamvbyte_static)
-# decode perf
-add_executable (decode_perf ${PROJECT_SOURCE_DIR}/tests/decode_perf.c)
-target_link_libraries(decode_perf streamvbyte_static)
 # writeseq
 add_executable (writeseq ${PROJECT_SOURCE_DIR}/tests/writeseq.c)
 target_link_libraries (writeseq streamvbyte_static)
-# perf
+# unit
 add_executable (unit ${PROJECT_SOURCE_DIR}/tests/unit.c)
 target_link_libraries (unit streamvbyte_static)
 
