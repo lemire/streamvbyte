@@ -74,7 +74,7 @@ example: ./example.c    $(HEADERS) $(OBJECTS)
 	$(CC) $(CFLAGS) -o example ./example.c -Iinclude  $(OBJECTS)
 
 perf: ./tests/perf.c    $(HEADERS) $(OBJECTS)
-	$(CC) $(CFLAGS) -o perf ./tests/perf.c -Iinclude  $(OBJECTS)
+	$(CC) $(CFLAGS) -o perf ./tests/perf.c -Iinclude  $(OBJECTS) -lm
 
 
 writeseq: ./tests/writeseq.c    $(HEADERS) $(OBJECTS)

@@ -23,6 +23,12 @@
 #include <string.h> // for memcpy
 
 
+
+
+
+#ifdef __AVX__
+#include "streamvbytedelta_x64_encode.c"
+#else
 static uint8_t _encode_data(uint32_t val, uint8_t *__restrict__ *dataPtrPtr) {
   uint8_t *dataPtr = *dataPtrPtr;
   uint8_t code;
@@ -75,10 +81,6 @@ static uint8_t *svb_encode_scalar_d1_init(const uint32_t *in,
 }
 
 
-
-
-#ifdef __AVX__
-#include "streamvbytedelta_x64_encode.c"
 #endif
 
 
