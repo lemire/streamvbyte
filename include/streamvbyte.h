@@ -21,13 +21,15 @@ extern "C" {
 size_t streamvbyte_encode(const uint32_t *in, uint32_t length, uint8_t *out);
 
 // return the maximum number of compressed bytes given length input integers
-static size_t streamvbyte_max_compressedbytes(const uint32_t length) {
+static inline size_t streamvbyte_max_compressedbytes(const uint32_t length) {
    // number of control bytes:
    size_t cb = (length + 3) / 4;
    // maximum number of control bytes:
    size_t db = (size_t) length * sizeof(uint32_t);
    return cb + db;
 }
+
+
 
 
 // Read "length" 32-bit integers in varint format from in, storing the result in out.
