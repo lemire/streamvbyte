@@ -9,7 +9,7 @@ static inline decode_t  _decode_neon(const uint8_t key,
 					const uint8_t * restrict *dataPtrPtr) {
 
   uint8_t len;
-  uint8_t *pshuf = &shuffleTable[key];
+  uint8_t *pshuf = (uint8_t *)&shuffleTable[key];
   uint8x16_t decodingShuffle = vld1q_u8(pshuf);
 
   uint8x16_t compressed = vld1q_u8(*dataPtrPtr);
