@@ -53,9 +53,6 @@ streamvbytedelta_encode.o: ./src/streamvbytedelta_encode.c $(HEADERS)
 streamvbytedelta_decode.o: ./src/streamvbytedelta_decode.c $(HEADERS)
 	$(CC) $(CFLAGS) -c ./src/streamvbytedelta_decode.c -Iinclude
 
-streamvbyte.o: ./src/streamvbyte.c $(HEADERS)
-	$(CC) $(CFLAGS) -c ./src/streamvbyte.c -Iinclude
-
 streamvbyte_0124.o: ./src/streamvbyte_0124.c $(HEADERS)
 	$(CC) $(CFLAGS) -c ./src/streamvbyte_0124.c -Iinclude
 
