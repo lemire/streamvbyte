@@ -43,7 +43,7 @@ uninstall:
 	ldconfig
 
 
-OBJECTS= streamvbyte_decode.o streamvbyte_encode.o streamvbytedelta_decode.o streamvbytedelta_encode.o
+OBJECTS= streamvbyte_decode.o streamvbyte_encode.o streamvbytedelta_decode.o streamvbytedelta_encode.o streamvbyte_0124.o
 
 
 
@@ -52,6 +52,12 @@ streamvbytedelta_encode.o: ./src/streamvbytedelta_encode.c $(HEADERS)
 
 streamvbytedelta_decode.o: ./src/streamvbytedelta_decode.c $(HEADERS)
 	$(CC) $(CFLAGS) -c ./src/streamvbytedelta_decode.c -Iinclude
+
+streamvbyte.o: ./src/streamvbyte.c $(HEADERS)
+	$(CC) $(CFLAGS) -c ./src/streamvbyte.c -Iinclude
+
+streamvbyte_0124.o: ./src/streamvbyte_0124.c $(HEADERS)
+	$(CC) $(CFLAGS) -c ./src/streamvbyte_0124.c -Iinclude
 
 streamvbyte_decode.o: ./src/streamvbyte_decode.c $(HEADERS)
 	$(CC) $(CFLAGS) -c ./src/streamvbyte_decode.c -Iinclude

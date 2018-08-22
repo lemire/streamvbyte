@@ -33,6 +33,7 @@ endif()
 set(STREAMVBYTE_SRCS
   ${PROJECT_SOURCE_DIR}/src/streamvbyte.c
   ${PROJECT_SOURCE_DIR}/src/streamvbytedelta.c
+  ${PROJECT_SOURCE_DIR}/src/streamvbyte_0124.c
   )
 add_library(streamvbyte_static STATIC "${STREAMVBYTE_SRCS}")
 target_link_libraries(streamvbyte_static ${BASE_FLAGS})
