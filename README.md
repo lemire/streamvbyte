@@ -28,9 +28,9 @@ Usage with Makefile:
 Usage with CMake:
 
 The cmake build system also offers a `libstreamvbyte_static.a` in addition to
-`libstreamvbyte.so`. 
+`libstreamvbyte.so`.
 
-`-DCMAKE_INSTALL_PREFIX:PATH=/path/to/install` is optional. 
+`-DCMAKE_INSTALL_PREFIX:PATH=/path/to/install` is optional.
 Defaults to /usr/local{include,lib}
 
 ```
@@ -62,7 +62,7 @@ size_t compsize = streamvbyte_delta_encode(datain, N, compressedbuffer,0); // en
 // here the result is stored in compressedbuffer using compsize bytes
 streamvbyte_delta_decode(compressedbuffer, recovdata, N,0); // decoding (fast)
 ```
-You have to know how many integers were coded when you decompress. You can store this 
+You have to know how many integers were coded when you decompress. You can store this
 information along with the compressed stream.
 
 Installation
@@ -81,10 +81,10 @@ It is recommended that you try ``make dyntest`` before proceeding.
 Benchmarking
 -----------------
 
-You can try to benchmark the decoding speed in this manner:
+You can try to benchmark the speed in this manner:
 
-      make decode_perf
-      ./decode_perf
+      make perf
+      ./perf
 
 Make sure to run ``make test`` before, as a sanity test.
 
@@ -115,7 +115,7 @@ Stream VByte in other languages
 Format Specification
 ---------------------
 
-We specify the format as follows. 
+We specify the format as follows.
 
 We do not store how many integers (``count``) are compressed
 in the compressed data per se. If you want to store
@@ -123,7 +123,7 @@ the data stream (e.g., to disk), you need to add this
 information. It is intentionally left out because, in
 applications, it is often the case that there are better
 ways to store this count.
- 
+
 There are two streams:
 
 - The data starts with an array of "control bytes". There
@@ -135,7 +135,7 @@ The first 2-bit word is made of the least significant 2 bits
 in the first byte, and so forth. There are four 2-bit words
 written in each byte.
 
-Starting from the first 2-bit word, we have corresponding 
+Starting from the first 2-bit word, we have corresponding
 sequence in the data bytes, written in sequence from the beginning:
  - When the 2-bit word is 00, there is a single data byte.
  - When the 2-bit words is 01, there are two data bytes.
@@ -183,4 +183,3 @@ See also
 * libvbyte: A fast implementation for varbyte 32bit/64bit integer compression https://github.com/cruppstahl/libvbyte
 * TurboPFor is a C library that offers lots of interesting optimizations. Well worth checking! (GPL license) https://github.com/powturbo/TurboPFor
 * Oroch is a C++ library that offers a usable API (MIT license) https://github.com/ademakov/Oroch
-

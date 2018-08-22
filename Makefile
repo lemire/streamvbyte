@@ -8,14 +8,14 @@ PROCESSOR:=$(shell uname -m)
 ifeq ($(PROCESSOR), aarch64)
 # for 64-bit ARM processors
 CFLAGS = -fPIC -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow -D__ARM_NEON__
-else ifeq ($(PROCESSOR), armv7l) 
+else ifeq ($(PROCESSOR), armv7l)
 # for 32-bit ARM processors
 CFLAGS = -fPIC -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow
 else
 # Here we expect x64
 # Formally speaking, we only need SSE4, at best, but code checks for AVX
 # since MSVC only allows to check for AVX and nothing finer like just SSE4
-CFLAGS = -fPIC -march=native -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow 
+CFLAGS = -fPIC -march=native -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow
 endif
 LDFLAGS = -shared
 LIBNAME=libstreamvbyte.so.0.0.1
@@ -34,7 +34,7 @@ install: $(OBJECTS) $(LIBNAME)
 
 
 
-HEADERS=./include/streamvbyte.h ./include/streamvbytedelta.h 
+HEADERS=./include/streamvbyte.h ./include/streamvbytedelta.h
 
 uninstall:
 	for h in $(HEADERS) ; do rm  /usr/local/$$h; done
@@ -43,18 +43,21 @@ uninstall:
 	ldconfig
 
 
-OBJECTS= streamvbyte.o streamvbytedelta.o
+OBJECTS= streamvbyte_decode.o streamvbyte_encode.o streamvbytedelta_decode.o streamvbytedelta_encode.o
 
 
 
-streamvbytedelta.o: ./src/streamvbytedelta.c $(HEADERS)
-	$(CC) $(CFLAGS) -c ./src/streamvbytedelta.c -Iinclude
+streamvbytedelta_encode.o: ./src/streamvbytedelta_encode.c $(HEADERS)
+	$(CC) $(CFLAGS) -c ./src/streamvbytedelta_encode.c -Iinclude
 
+streamvbytedelta_decode.o: ./src/streamvbytedelta_decode.c $(HEADERS)
+	$(CC) $(CFLAGS) -c ./src/streamvbytedelta_decode.c -Iinclude
 
-streamvbyte.o: ./src/streamvbyte.c $(HEADERS)
-	$(CC) $(CFLAGS) -c ./src/streamvbyte.c -Iinclude
+streamvbyte_decode.o: ./src/streamvbyte_decode.c $(HEADERS)
+	$(CC) $(CFLAGS) -c ./src/streamvbyte_decode.c -Iinclude
 
-
+streamvbyte_encode.o: ./src/streamvbyte_encode.c $(HEADERS)
+	$(CC) $(CFLAGS) -c ./src/streamvbyte_encode.c -Iinclude
 
 $(LIBNAME): $(OBJECTS)
 	$(CC) $(CFLAGS) -o $(LIBNAME) $(OBJECTS)  $(LDFLAGS)
@@ -62,7 +65,7 @@ $(LIBNAME): $(OBJECTS)
 $(LNLIBNAME): $(LIBNAME)
 	ln -f -s $(LIBNAME) $(LNLIBNAME)
 
-shuffle_tables: ./utils/shuffle_tables.c 
+shuffle_tables: ./utils/shuffle_tables.c
 	$(CC) $(CFLAGS) -o shuffle_tables ./utils/shuffle_tables.c
 
 
@@ -73,8 +76,6 @@ example: ./example.c    $(HEADERS) $(OBJECTS)
 perf: ./tests/perf.c    $(HEADERS) $(OBJECTS)
 	$(CC) $(CFLAGS) -o perf ./tests/perf.c -Iinclude  $(OBJECTS)
 
-decode_perf: ./tests/decode_perf.c    $(HEADERS) $(OBJECTS)
-	$(CC) $(CFLAGS) -o decode_perf ./tests/decode_perf.c -Iinclude  $(OBJECTS)
 
 writeseq: ./tests/writeseq.c    $(HEADERS) $(OBJECTS)
 	$(CC) $(CFLAGS) -o writeseq ./tests/writeseq.c -Iinclude  $(OBJECTS)
@@ -86,4 +87,4 @@ dynunit: ./tests/unit.c    $(HEADERS) $(LIBNAME) $(LNLIBNAME)
 	$(CC) $(CFLAGS) -o dynunit ./tests/unit.c -Iinclude  -L. -lstreamvbyte
 
 clean:
-	rm -f unit *.o $(LIBNAME) $(LNLIBNAME) decode_perf example shuffle_tables perf writeseq dynunit
+	rm -f unit *.o $(LIBNAME) $(LNLIBNAME)  example shuffle_tables perf writeseq dynunit
