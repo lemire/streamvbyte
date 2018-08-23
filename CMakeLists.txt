@@ -1,4 +1,10 @@
 cmake_minimum_required(VERSION 3.3)
+set(CMAKE_MACOSX_RPATH OFF)
+if (NOT CMAKE_BUILD_TYPE)
+                message(STATUS "No build type selected, default to Release")
+                set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+endif()
+
 project(STREAMVBYTE VERSION "0.0.1")
 cmake_policy(SET CMP0065 OLD)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
@@ -35,8 +41,9 @@ set(STREAMVBYTE_SRCS
   ${PROJECT_SOURCE_DIR}/src/streamvbyte_decode.c
   ${PROJECT_SOURCE_DIR}/src/streamvbytedelta_encode.c
   ${PROJECT_SOURCE_DIR}/src/streamvbytedelta_decode.c
-  ${PROJECT_SOURCE_DIR}/src/streamvbyte_0124.c
-  )
+  ${PROJECT_SOURCE_DIR}/src/streamvbyte_0124_encode.c
+  ${PROJECT_SOURCE_DIR}/src/streamvbyte_0124_decode.c
+   )
 add_library(streamvbyte_static STATIC "${STREAMVBYTE_SRCS}")
 target_link_libraries(streamvbyte_static ${BASE_FLAGS})
 add_library(streamvbyte SHARED "${STREAMVBYTE_SRCS}")
@@ -57,6 +64,21 @@ install(FILES
 install(
   TARGETS streamvbyte streamvbyte_static
   DESTINATION lib)
+## -march=native is not supported on some platforms
+if(NOT MSVC)
+if(NOT STREAMVBYTE_DISABLE_NATIVE)
+set(OPT_FLAGS "-march=native")
+endif()
+endif()
+
+set(CMAKE_C_FLAGS "${STD_FLAGS} ${OPT_FLAGS} ${INCLUDE_FLAGS} ${WARNING_FLAGS} ${SANITIZE_FLAGS} ")
+
+MESSAGE( STATUS "CMAKE_SYSTEM_PROCESSOR: " ${CMAKE_SYSTEM_PROCESSOR})
+MESSAGE( STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE} ) # this tends to be "sticky" so you can remain unknowingly in debug mode
+MESSAGE( STATUS "CMAKE_C_COMPILER: " ${CMAKE_C_COMPILER} ) # important to know which compiler is used
+MESSAGE( STATUS "CMAKE_C_FLAGS: " ${CMAKE_C_FLAGS} ) # important to know the flags
+MESSAGE( STATUS "CMAKE_C_FLAGS_DEBUG: " ${CMAKE_C_FLAGS_DEBUG} )
+MESSAGE( STATUS "CMAKE_C_FLAGS_RELEASE: " ${CMAKE_C_FLAGS_RELEASE} )
 
 # build programs
 

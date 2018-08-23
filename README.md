@@ -33,6 +33,8 @@ The cmake build system also offers a `libstreamvbyte_static.a` in addition to
 `-DCMAKE_INSTALL_PREFIX:PATH=/path/to/install` is optional.
 Defaults to /usr/local{include,lib}
 
+By default, the project builds with ``-march=native`` (except on MSVC), use ``-DSTREAMVBYTE_DISABLE_NATIVE=ON`` to disable.
+
 ```
 mkdir build
 cd build
