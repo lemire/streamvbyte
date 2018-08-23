@@ -97,15 +97,13 @@ Technical posts
 * [Stream VByte: breaking new speed records for integer compression](https://lemire.me/blog/2017/09/27/stream-vbyte-breaking-new-speed-records-for-integer-compression/) by Daniel Lemire
 
 
-Generating the shuffling masks
+Alternative encoding
 -------------------------------
 
-The code relies on "magical" shuffling masks to quicly reorder bytes. Most users and programmers do not need to worry about them, but if you need to regenerate them, you can do so as follows:
-
-```
- make shuffle_tables
- ./shuffle_tables
-```
+By default, Stream VByte uses 1, 2, 3 or 4 bytes per integer.
+In the case where you expect many of your integers to be zero, you might try
+the ``streamvbyte_encode_0124`` and ``streamvbyte_decode_0124`` which use
+0, 1, 2, or 4 bytes per integer.
 
 
 Stream VByte in other languages
