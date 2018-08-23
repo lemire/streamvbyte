@@ -88,6 +88,7 @@ target_link_libraries (example streamvbyte_static)
 # perf
 add_executable (perf ${PROJECT_SOURCE_DIR}/tests/perf.c)
 target_link_libraries (perf streamvbyte_static)
+target_link_libraries(perf m)
 # writeseq
 add_executable (writeseq ${PROJECT_SOURCE_DIR}/tests/writeseq.c)
 target_link_libraries (writeseq streamvbyte_static)
