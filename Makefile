@@ -34,7 +34,7 @@ install: $(OBJECTS) $(LIBNAME)
 
 
 
-HEADERS=./include/streamvbyte.h ./include/streamvbytedelta.h
+HEADERS=./include/streamvbyte.h ./include/streamvbytedelta.h ./include/streamvbyte_zigzag.h
 
 uninstall:
 	for h in $(HEADERS) ; do rm  /usr/local/$$h; done
@@ -43,8 +43,10 @@ uninstall:
 	ldconfig
 
 
-OBJECTS= streamvbyte_decode.o streamvbyte_encode.o streamvbytedelta_decode.o streamvbytedelta_encode.o streamvbyte_0124_encode.o  streamvbyte_0124_decode.o
+OBJECTS= streamvbyte_decode.o streamvbyte_encode.o streamvbytedelta_decode.o streamvbytedelta_encode.o streamvbyte_0124_encode.o  streamvbyte_0124_decode.o streamvbyte_zigzag.o
 
+streamvbyte_zigzag.o: ./src/streamvbyte_zigzag.c $(HEADERS)
+	$(CC) $(CFLAGS) -c ./src/streamvbyte_zigzag.c -Iinclude
 
 
 streamvbytedelta_encode.o: ./src/streamvbytedelta_encode.c $(HEADERS)

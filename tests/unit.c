@@ -1,4 +1,5 @@
 #include "streamvbyte.h"
+#include "streamvbyte_zigzag.h"
 #include "streamvbytedelta.h"
 #include <stdbool.h>
 #include <stdio.h>
@@ -9,6 +10,29 @@ static bool isLittleEndian() {
   int x = 1;
   char *c = (char *)&x;
   return (*c == 1);
+}
+
+// return -1 in case of failure
+int zigzagtests() {
+    size_t N = 4096;
+    int32_t *datain = malloc(N * sizeof(int32_t));
+    for(size_t i = 0; i < N; i++)
+      datain[i] = rand() - rand();
+    uint32_t *dataout = malloc(N * sizeof(uint32_t));
+    int32_t *databack = malloc(N * sizeof(int32_t));
+    zigzag_encode(datain, dataout, N);
+    zigzag_decode(dataout, databack, N);
+    int isok = 1;
+    for(size_t i = 0; i < N; i++) {
+      if(datain[i] != databack[i]) {
+        printf("bug\n");
+        isok = -1;
+      }
+    }
+    free(databack);
+    free(dataout);
+    free(datain);
+    return isok;
 }
 
 // return -1 in case of failure
@@ -156,6 +180,8 @@ int aqrittests() {
 }
 
 int main() {
+  if(zigzagtests() == -1)
+    return -1;
   if (basictests() == -1)
     return -1;
   if (aqrittests() == -1)
