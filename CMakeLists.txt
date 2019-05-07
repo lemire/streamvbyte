@@ -39,6 +39,7 @@ endif()
 set(STREAMVBYTE_SRCS
   ${PROJECT_SOURCE_DIR}/src/streamvbyte_encode.c
   ${PROJECT_SOURCE_DIR}/src/streamvbyte_decode.c
+  ${PROJECT_SOURCE_DIR}/src/streamvbyte_zigzag.c
   ${PROJECT_SOURCE_DIR}/src/streamvbytedelta_encode.c
   ${PROJECT_SOURCE_DIR}/src/streamvbytedelta_decode.c
   ${PROJECT_SOURCE_DIR}/src/streamvbyte_0124_encode.c
@@ -59,7 +60,8 @@ target_include_directories(
 install(FILES
   ${PROJECT_SOURCE_DIR}/include/streamvbyte.h
   ${PROJECT_SOURCE_DIR}/include/streamvbytedelta.h
-  DESTINATION include
+  ${PROJECT_SOURCE_DIR}/include/streamvbyte_zigzag.h
+   DESTINATION include
   )
 install(
   TARGETS streamvbyte streamvbyte_static
