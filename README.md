@@ -67,6 +67,21 @@ streamvbyte_delta_decode(compressedbuffer, recovdata, N,0); // decoding (fast)
 You have to know how many integers were coded when you decompress. You can store this
 information along with the compressed stream.
 
+
+Signed integers
+-----------------
+
+We do not directly support signed integers, but you can use fast functions to convert signed integers to unsigned integers.
+
+```C
+
+#include "streamvbyte_zigzag.h"
+
+zigzag_encode(mysignedints, myunsignedints, number); // mysignedints => myunsignedints
+
+zigzag_decode(myunsignedints, mysignedints, number); // myunsignedints => mysignedints
+```
+
 Installation
 ----------------
 
