@@ -18,10 +18,22 @@ extern "C" {
 void zigzag_encode(const int32_t * in, uint32_t * out, size_t N);
 
 /**
+ * Convert N signed integers to N unsigned integers, using zigzag
+ * delta encoding.
+ */
+void zigzag_delta_encode(const int32_t * in, uint32_t * out, size_t N, int32_t prev);
+
+/**
  * Convert N unsigned integers to N signed integers, using zigzag
  * encoding.
  */
 void zigzag_decode(const uint32_t * in, int32_t * out, size_t N);
+
+/**
+ * Convert N unsigned integers to N signed integers, using zigzag
+ * delta encoding.
+ */
+void zigzag_delta_decode(const uint32_t * in, int32_t * out, size_t N, int32_t prev);
 
 
 #if defined(__cplusplus)

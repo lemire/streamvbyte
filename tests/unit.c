@@ -20,15 +20,27 @@ int zigzagtests() {
       datain[i] = rand() - rand();
     uint32_t *dataout = malloc(N * sizeof(uint32_t));
     int32_t *databack = malloc(N * sizeof(int32_t));
+
+    uint32_t *deltadataout = malloc(N * sizeof(uint32_t));
+    int32_t *deltadataback = malloc(N * sizeof(int32_t));
+
     zigzag_encode(datain, dataout, N);
     zigzag_decode(dataout, databack, N);
+    zigzag_delta_encode(datain, deltadataout, N, 0);
+    zigzag_delta_decode(deltadataout, deltadataback, N, 0);
+
     int isok = 1;
     for(size_t i = 0; i < N; i++) {
       if(datain[i] != databack[i]) {
         printf("bug\n");
         isok = -1;
       }
+      if(datain[i] != deltadataback[i]) {
+        printf("bug\n");
+        isok = -1;
+      }
     }
+
     free(databack);
     free(dataout);
     free(datain);
