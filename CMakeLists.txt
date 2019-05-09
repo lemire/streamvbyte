@@ -45,6 +45,7 @@ set(STREAMVBYTE_SRCS
   ${PROJECT_SOURCE_DIR}/src/streamvbyte_0124_encode.c
   ${PROJECT_SOURCE_DIR}/src/streamvbyte_0124_decode.c
    )
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 add_library(streamvbyte_static STATIC "${STREAMVBYTE_SRCS}")
 target_link_libraries(streamvbyte_static ${BASE_FLAGS})
 add_library(streamvbyte SHARED "${STREAMVBYTE_SRCS}")
