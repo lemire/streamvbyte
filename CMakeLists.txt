@@ -29,6 +29,11 @@ else()
     "-g"
     )
 endif()
+if (MSVC)
+    add_definitions(
+        "-D__restrict__=__restrict"
+        )
+endif()
 # test for arm
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64.*|AARCH64.*)")
    set(BASE_FLAGS
