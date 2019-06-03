@@ -29,6 +29,11 @@ else()
     "-g"
     )
 endif()
+if (MSVC)
+    add_definitions(
+        "-D__restrict__=__restrict"
+        )
+endif()
 # test for arm
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64.*|AARCH64.*)")
    set(BASE_FLAGS
@@ -88,10 +93,13 @@ MESSAGE( STATUS "CMAKE_C_FLAGS_RELEASE: " ${CMAKE_C_FLAGS_RELEASE} )
 # example
 add_executable (example ${PROJECT_SOURCE_DIR}/example.c)
 target_link_libraries (example streamvbyte_static)
-# perf
-add_executable (perf ${PROJECT_SOURCE_DIR}/tests/perf.c)
-target_link_libraries (perf streamvbyte_static)
-target_link_libraries(perf m)
+
+if(NOT MSVC)
+    # perf
+    add_executable (perf ${PROJECT_SOURCE_DIR}/tests/perf.c)
+    target_link_libraries (perf streamvbyte_static)
+    target_link_libraries(perf m)
+endif()
 # writeseq
 add_executable (writeseq ${PROJECT_SOURCE_DIR}/tests/writeseq.c)
 target_link_libraries (writeseq streamvbyte_static)
