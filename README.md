@@ -16,9 +16,17 @@ It assumes a recent Intel processor (e.g., haswell or better) or an ARM processo
 The code should build using most standard-compliant C99 compilers. The provided makefile
 expects a Linux-like system.
 
-This library is used by [UpscaleDB](https://github.com/cruppstahl/upscaledb), Redis' [RediSearch](https://github.com/RedisLabsModules/RediSearch) and by the  [Trinity Information Retrieval framework](https://github.com/phaistos-networks/Trinity).
 
+# Users
 
+This library is used by 
+
+ * [UpscaleDB](https://github.com/cruppstahl/upscaledb), 
+ * Redis' [RediSearch](https://github.com/RedisLabsModules/RediSearch),
+ * [Facebook Thrift](https://github.com/facebook/fbthrift),
+ * [Trinity Information Retrieval framework](https://github.com/phaistos-networks/Trinity).
+
+# Usage
 
 Usage with Makefile:
 
