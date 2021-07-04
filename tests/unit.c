@@ -191,12 +191,42 @@ int aqrittests() {
   return 0;
 }
 
+int compressedbytestests() {
+  const uint32_t *empty = 0;
+
+  if (streamvbyte_compressedbytes(empty, 0) != 0) {
+    return -1;
+  }
+
+  uint32_t small[] = {1, 1, 1, 1};
+
+  if (streamvbyte_compressedbytes(small, 4) != (1 + (4 * 1))) {
+    return -1;
+  }
+
+  uint32_t big[] = {260, 260, 260, 260};
+
+  if (streamvbyte_compressedbytes(big, 4) != (1 + (4 * 2))) {
+    return -1;
+  }
+
+  uint32_t biggest[] = {-1, -1, -1, -1};
+
+  if (streamvbyte_compressedbytes(biggest, 4) != (1 + (4 * 4))) {
+    return -1;
+  }
+
+  return 0;
+}
+
 int main() {
   if(zigzagtests() == -1)
     return -1;
   if (basictests() == -1)
     return -1;
   if (aqrittests() == -1)
+    return -1;
+  if (compressedbytestests() == -1)
     return -1;
   printf("Code looks good.\n");
   if (isLittleEndian()) {

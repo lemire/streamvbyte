@@ -1,3 +1,9 @@
+unit
+dynunit
+writeseq
+perf
+example
+
 # Object files
 *.o
 *.ko
