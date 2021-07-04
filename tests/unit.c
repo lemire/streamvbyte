@@ -219,6 +219,34 @@ int compressedbytestests() {
   return 0;
 }
 
+int compressedbytestests0124() {
+  const uint32_t *empty = 0;
+
+  if (streamvbyte_compressedbytes_0124(empty, 0) != 0) {
+    return -1;
+  }
+
+  uint32_t small[] = {0, 0, 0, 0};
+
+  if (streamvbyte_compressedbytes_0124(small, 4) != (1 + (4 * 0))) {
+    return -1;
+  }
+
+  uint32_t big[] = {260, 260, 260, 260};
+
+  if (streamvbyte_compressedbytes_0124(big, 4) != (1 + (4 * 2))) {
+    return -1;
+  }
+
+  uint32_t biggest[] = {-1, -1, -1, -1};
+
+  if (streamvbyte_compressedbytes_0124(biggest, 4) != (1 + (4 * 4))) {
+    return -1;
+  }
+
+  return 0;
+}
+
 int main() {
   if(zigzagtests() == -1)
     return -1;
