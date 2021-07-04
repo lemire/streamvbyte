@@ -55,6 +55,25 @@ static inline size_t streamvbyte_compressedbytes(const uint32_t *in, uint32_t le
    return cb + db;
 }
 
+// return the exact number of compressed bytes given length input integers
+// runtime in O(n) wrt. in; use streamvbyte_max_compressedbyte if you
+// care about speed more than potentially over-allocating memory
+static inline size_t streamvbyte_compressedbytes_0124(const uint32_t *in, uint32_t length) {
+   // number of control bytes:
+   size_t cb = (length + 3) / 4;
+   // maximum number of control bytes:
+   size_t db = 0;
+   for (uint32_t c = 0; c < length; c++) {
+      uint32_t val = in[c];
+
+      if (val == 0) db += 0;
+      else if (val < (1 << 8)) db += 1;
+      else if (val < (1 << 16)) db += 2;
+      else db += 4;
+   }
+   return cb + db;
+}
+
 
 // Read "length" 32-bit integers in varint format from in, storing the result in out.
 // Returns the number of bytes read.
