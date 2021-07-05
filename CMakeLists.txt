@@ -6,29 +6,7 @@ if (NOT CMAKE_BUILD_TYPE)
 endif()
 
 project(STREAMVBYTE VERSION "0.0.1")
-cmake_policy(SET CMP0065 OLD)
-set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
-set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -v" )
-set(BASE_FLAGS
-  "-std=c99"
-  "-fPIC"
-  "-Wextra"
-  "-pedantic"
-  "-Wshadow"
-)
-if(CMAKE_BUILD_TYPE MATCHES Debug)
-  set(BASE_FLAGS
-    ${BASE_FLAGS}
-    "-O0"
-    "-ggdb"
-    )
-else()
-  set(BASE_FLAGS
-    ${BASE_FLAGS}
-    "-O3"
-    "-g"
-    )
-endif()
+
 if (MSVC)
     add_definitions(
         "-D__restrict__=__restrict"
@@ -73,7 +51,11 @@ install(
   TARGETS streamvbyte streamvbyte_static
   DESTINATION lib)
 
-set(CMAKE_C_FLAGS "${STD_FLAGS} ${OPT_FLAGS} ${INCLUDE_FLAGS} ${WARNING_FLAGS} ${SANITIZE_FLAGS} ")
+option(STREAMVBYTE_SANITIZE_UNDEFINED "Sanitize undefined behavior" OFF)
+if(STREAMVBYTE_SANITIZE_UNDEFINED)
+  add_compile_options(-fsanitize=undefined -fno-sanitize-recover=all)
+  add_link_options(-fsanitize=undefined -fno-sanitize-recover=all)
+endif()
 
 MESSAGE( STATUS "CMAKE_SYSTEM_PROCESSOR: " ${CMAKE_SYSTEM_PROCESSOR})
 MESSAGE( STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE} ) # this tends to be "sticky" so you can remain unknowingly in debug mode
