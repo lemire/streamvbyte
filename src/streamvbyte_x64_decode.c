@@ -105,5 +105,4 @@ const uint8_t *svb_decode_avx_simple(uint32_t *out,
   return dataPtr;
 }
 STREAMVBYTE_UNTARGET_REGION
-
 #endif

@@ -137,7 +137,6 @@ static inline uint32_t dynamic_streamvbyte_detect_supported_architectures() {
   uint32_t eax, ebx, ecx, edx;
   uint32_t host_isa = 0x0;
   // Can be found on Intel ISA Reference for CPUID
-  static uint32_t cpuid_sse2_bit = 1 << 0;      ///< @private Bit 0 of EBX for EAX=0x7
   static uint32_t cpuid_ssse3_bit = 1 << 1;      ///< @private Bit 1 of EBX for EAX=0x7
   static uint32_t cpuid_avx2_bit = 1 << 5;      ///< @private Bit 5 of EBX for EAX=0x7
   static uint32_t cpuid_bmi1_bit = 1 << 3;      ///< @private bit 3 of EBX for EAX=0x7
@@ -207,9 +206,16 @@ static inline uint32_t streamvbyte_detect_supported_architectures() {
     return buffer;
 }
 #else // defined(__cplusplus) and defined(_MSC_VER) && !defined(__clang__)
+#if __STDC_VERSION__ >= 201112L
 #include <stdatomic.h>
+#endif
+
 static inline uint32_t streamvbyte_detect_supported_architectures() {
+#if __STDC_VERSION__ >= 201112L
     static _Atomic int buffer = streamvbyte_UNINITIALIZED;
+#else
+    static int buffer = streamvbyte_UNINITIALIZED;
+#endif
     if(buffer == streamvbyte_UNINITIALIZED) {
       buffer = dynamic_streamvbyte_detect_supported_architectures();
     }
