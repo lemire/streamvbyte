@@ -219,7 +219,38 @@ static inline uint32_t streamvbyte_detect_supported_architectures() {
     // no runtime dispatch
     return dynamic_streamvbyte_detect_supported_architectures();
 }
-#endif // defined(__x86_64__) || defined(_M_AMD64) // x64
+
+
+#ifdef __clang__
+// clang does not have GCC push pop
+// warning: clang attribute push can't be used within a namespace in clang up
+// til 8.0 so STREAMVBYTE_TARGET_REGION and STREAMVBYTE_UNTARGET_REGION must be *outside* of a
+// namespace.
+#define STREAMVBYTE_TARGET_REGION(T)                                                       \
+  _Pragma(STRINGIFY(                                                           \
+      clang attribute push(__attribute__((target(T))), apply_to = function)))
+#define STREAMVBYTE_UNTARGET_REGION _Pragma("clang attribute pop")
+#elif defined(__GNUC__)
+// GCC is easier
+#define STREAMVBYTE_TARGET_REGION(T)                                                       \
+  _Pragma("GCC push_options") _Pragma(STRINGIFY(GCC target(T)))
+#define STREAMVBYTE_UNTARGET_REGION _Pragma("GCC pop_options")
+#endif // clang then gcc
+
+
+// Default target region macros don't do anything.
+#ifndef STREAMVBYTE_TARGET_REGION
+#define STREAMVBYTE_TARGET_REGION(T)
+#define STREAMVBYTE_UNTARGET_REGION
+#endif
+
+#define STREAMVBYTE_TARGET_SSSE3 STREAMVBYTE_TARGET_REGION("ssse3")
+#ifdef __AVX___
+#undef STREAMVBYTE_TARGET_SSSE3
+#define STREAMVBYTE_TARGET_SSSE3
+#endif
+
+#endif // STREAMVBYTE_IS_X64
 
 #ifdef __ARM_NEON__
 #define STREAMVBYTE_ARM
