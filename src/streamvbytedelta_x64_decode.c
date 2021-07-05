@@ -2,6 +2,7 @@
 #include "streamvbyte_shuffle_tables_decode.h"
 #include "streamvbyte_isadetection.h"
 #ifdef STREAMVBYTE_X64
+STREAMVBYTE_TARGET_SSSE3
 static inline __m128i _decode_avx(uint32_t key,
                                   const uint8_t *__restrict__ *dataPtrPtr) {
   uint8_t len = lengthTable[key];
@@ -13,12 +14,15 @@ static inline __m128i _decode_avx(uint32_t key,
 
   return Data;
 }
+STREAMVBYTE_UNTARGET_REGION
 #define BroadcastLastXMM 0xFF // bits 0-7 all set to choose highest element
-
+STREAMVBYTE_TARGET_SSSE3
 static inline void _write_avx(uint32_t *out, __m128i Vec) {
   _mm_storeu_si128((__m128i *)out, Vec);
 }
+STREAMVBYTE_UNTARGET_REGION
 
+STREAMVBYTE_TARGET_SSSE3
 static __m128i _write_avx_d1(uint32_t *out, __m128i Vec, __m128i Prev) {
   __m128i Add = _mm_slli_si128(Vec, 4); // Cycle 1: [- A B C] (already done)
   Prev = _mm_shuffle_epi32(Prev, BroadcastLastXMM); // Cycle 2: [P P P P]
@@ -30,16 +34,18 @@ static __m128i _write_avx_d1(uint32_t *out, __m128i Vec, __m128i Prev) {
   _write_avx(out, Vec);
   return Vec;
 }
+STREAMVBYTE_UNTARGET_REGION
 
-#ifndef _MSC_VER
-static __m128i High16To32 = {0xFFFF0B0AFFFF0908, 0xFFFF0F0EFFFF0D0C};
-#else
-static __m128i High16To32 = {8,  9,  -1, -1, 10, 11, -1, -1,
-                             12, 13, -1, -1, 14, 15, -1, -1};
-#endif
 
+STREAMVBYTE_TARGET_SSSE3
 static inline __m128i _write_16bit_avx_d1(uint32_t *out, __m128i Vec,
                                           __m128i Prev) {
+#ifndef _MSC_VER
+  __m128i High16To32 = {0xFFFF0B0AFFFF0908, 0xFFFF0F0EFFFF0D0C};
+#else
+  __m128i High16To32 = {8,  9,  -1, -1, 10, 11, -1, -1,
+                        12, 13, -1, -1, 14, 15, -1, -1};
+#endif
   // vec == [A B C D E F G H] (16 bit values)
   __m128i Add = _mm_slli_si128(Vec, 2);             // [- A B C D E F G]
   Prev = _mm_shuffle_epi32(Prev, BroadcastLastXMM); // [P P P P] (32-bit)
@@ -55,8 +61,9 @@ static inline __m128i _write_16bit_avx_d1(uint32_t *out, __m128i Vec,
   _write_avx(out + 4, V2);
   return V2;
 }
+STREAMVBYTE_UNTARGET_REGION
 
-
+STREAMVBYTE_TARGET_SSSE3
 const uint8_t *svb_decode_avx_d1_init(uint32_t *out,
                                       const uint8_t *__restrict__ keyPtr,
                                       const uint8_t *__restrict__ dataPtr,
@@ -164,4 +171,5 @@ const uint8_t *svb_decode_avx_d1_init(uint32_t *out,
   return svb_decode_scalar_d1_init(out, keyPtr + consumedkeys, dataPtr,
                                    count & 31, prev);
 }
+STREAMVBYTE_UNTARGET_REGION
 #endif

@@ -61,7 +61,6 @@ static uint8_t *svb_encode_scalar_d1_init(const uint32_t *in,
 }
 
 #ifdef STREAMVBYTE_X64
-
 // from streamvbyte.c
 size_t streamvbyte_encode_quad(__m128i in, uint8_t *outData, uint8_t *outCode);
 
@@ -105,9 +104,8 @@ size_t streamvbyte_delta_encode(const uint32_t *in, uint32_t count, uint8_t *out
   if(streamvbyte_ssse3()) {
     return svb_encode_vector_d1_init(in, keyPtr, dataPtr, count, prev) - out;
   }
-#else
-  return svb_encode_scalar_d1_init(in, keyPtr, dataPtr, count, prev) - out;
 #endif
+  return svb_encode_scalar_d1_init(in, keyPtr, dataPtr, count, prev) - out;
 }
 
 #ifdef STREAMVBYTE_X64
@@ -323,7 +321,6 @@ const uint8_t *svb_decode_avx_d1_init(uint32_t *out,
   return svb_decode_scalar_d1_init(out, keyPtr + consumedkeys, dataPtr,
                                    count & 31, prev);
 }
-
 #endif
 
 size_t streamvbyte_delta_decode(const uint8_t *in, uint32_t *out,
@@ -335,7 +332,6 @@ size_t streamvbyte_delta_decode(const uint8_t *in, uint32_t *out,
   if(streamvbyte_ssse3()) {
     return svb_decode_avx_d1_init(out, keyPtr, dataPtr, count, prev) - in;
   }
-#else
-  return svb_decode_scalar_d1_init(out, keyPtr, dataPtr, count, prev) - in;
 #endif
+  return svb_decode_scalar_d1_init(out, keyPtr, dataPtr, count, prev) - in;
 }

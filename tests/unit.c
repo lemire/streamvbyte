@@ -1,6 +1,8 @@
 #include "streamvbyte.h"
 #include "streamvbyte_zigzag.h"
 #include "streamvbytedelta.h"
+#include "../src/streamvbyte_isadetection.h"
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -298,6 +300,8 @@ int main() {
 #ifdef STREAMVBYTE_X64
   if(streamvbyte_ssse3()) {
     printf("Code was vectorized (x64).\n");
+  } else {
+    printf("Code was not vectorized (x64).\n");
   }
 #elif defined(__ARM_NEON__)
   printf("Code was vectorized (ARM NEON).\n");

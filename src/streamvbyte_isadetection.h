@@ -42,9 +42,30 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
+
+
 #if defined(_MSC_VER)
+/* Microsoft C/C++-compatible compiler */
 #include <intrin.h>
-#elif defined(HAVE_GCC_GET_CPUID) && defined(USE_GCC_GET_CPUID)
+#elif defined(__GNUC__) && (defined(__x86_64__) || defined(__i386__))
+/* GCC-compatible compiler, targeting x86/x86-64 */
+#include <x86intrin.h>
+#elif defined(__GNUC__) && defined(__ARM_NEON__)
+/* GCC-compatible compiler, targeting ARM with NEON */
+#include <arm_neon.h>
+#elif defined(__GNUC__) && defined(__IWMMXT__)
+/* GCC-compatible compiler, targeting ARM with WMMX */
+#include <mmintrin.h>
+#elif (defined(__GNUC__) || defined(__xlC__)) &&                               \
+    (defined(__VEC__) || defined(__ALTIVEC__))
+/* XLC or GCC-compatible compiler, targeting PowerPC with VMX/VSX */
+#include <altivec.h>
+#elif defined(__GNUC__) && defined(__SPE__)
+/* GCC-compatible compiler, targeting PowerPC with SPE */
+#include <spe.h>
+#endif
+
+#if defined(HAVE_GCC_GET_CPUID) && defined(USE_GCC_GET_CPUID)
 #include <cpuid.h>
 #endif // defined(_MSC_VER)
 
@@ -127,9 +148,6 @@ static inline uint32_t dynamic_streamvbyte_detect_supported_architectures() {
   eax = 0x7;
   ecx = 0x0;
   cpuid(&eax, &ebx, &ecx, &edx);
-  if (ebx & cpuid_ssse3_bit) {
-    host_isa |= streamvbyte_SSSE3;
-  }
   if (ebx & cpuid_avx2_bit) {
     host_isa |= streamvbyte_AVX2;
   }
@@ -144,7 +162,9 @@ static inline uint32_t dynamic_streamvbyte_detect_supported_architectures() {
   // EBX for EAX=0x1
   eax = 0x1;
   cpuid(&eax, &ebx, &ecx, &edx);
-
+  if (ecx & cpuid_ssse3_bit) {
+    host_isa |= streamvbyte_SSSE3;
+  }
   if (ecx & cpuid_sse42_bit) {
     host_isa |= streamvbyte_SSE42;
   }
@@ -219,7 +239,18 @@ static inline uint32_t streamvbyte_detect_supported_architectures() {
     // no runtime dispatch
     return dynamic_streamvbyte_detect_supported_architectures();
 }
+#endif
 
+#ifdef __ARM_NEON__
+#define STREAMVBYTE_ARM
+#endif 
+
+#ifdef STREAMVBYTE_X64
+// this is almost standard?
+#undef STRINGIFY_IMPLEMENTATION_
+#undef STRINGIFY
+#define STRINGIFY_IMPLEMENTATION_(a) #a
+#define STRINGIFY(a) STRINGIFY_IMPLEMENTATION_(a)
 
 #ifdef __clang__
 // clang does not have GCC push pop
@@ -244,36 +275,13 @@ static inline uint32_t streamvbyte_detect_supported_architectures() {
 #define STREAMVBYTE_UNTARGET_REGION
 #endif
 
-#define STREAMVBYTE_TARGET_SSSE3 STREAMVBYTE_TARGET_REGION("ssse3")
+#define STREAMVBYTE_TARGET_SSSE3 STREAMVBYTE_TARGET_REGION("avx2")
+
 #ifdef __AVX___
 #undef STREAMVBYTE_TARGET_SSSE3
 #define STREAMVBYTE_TARGET_SSSE3
 #endif
 
 #endif // STREAMVBYTE_IS_X64
-
-#ifdef __ARM_NEON__
-#define STREAMVBYTE_ARM
-#endif 
-#if defined(_MSC_VER)
-/* Microsoft C/C++-compatible compiler */
-#include <intrin.h>
-#elif defined(__GNUC__) && (defined(__x86_64__) || defined(__i386__))
-/* GCC-compatible compiler, targeting x86/x86-64 */
-#include <x86intrin.h>
-#elif defined(__GNUC__) && defined(__ARM_NEON__)
-/* GCC-compatible compiler, targeting ARM with NEON */
-#include <arm_neon.h>
-#elif defined(__GNUC__) && defined(__IWMMXT__)
-/* GCC-compatible compiler, targeting ARM with WMMX */
-#include <mmintrin.h>
-#elif (defined(__GNUC__) || defined(__xlC__)) &&                               \
-    (defined(__VEC__) || defined(__ALTIVEC__))
-/* XLC or GCC-compatible compiler, targeting PowerPC with VMX/VSX */
-#include <altivec.h>
-#elif defined(__GNUC__) && defined(__SPE__)
-/* GCC-compatible compiler, targeting PowerPC with SPE */
-#include <spe.h>
-#endif
 
 #endif // STREAMVBYTE_ISADETECTION_H
