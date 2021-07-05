@@ -8,7 +8,7 @@
 #include <x86intrin.h>
 #endif
 
-#ifdef __AVX__
+#ifdef STREAMVBYTE_X64
 #include "streamvbyte_shuffle_tables_0124_encode.h"
 #endif
 
@@ -62,7 +62,7 @@ static uint8_t *svb_encode_scalar(const uint32_t *in,
   return dataPtr; // pointer to first unused data byte
 }
 
-#ifdef __AVX__
+#ifdef STREAMVBYTE_X64
 
 static size_t streamvbyte_encode4(__m128i in, uint8_t *outData, uint8_t *outCode) {
   const __m128i Ones = _mm_set1_epi32(0x01010101);
@@ -100,14 +100,15 @@ size_t streamvbyte_encode_0124(const uint32_t *in, uint32_t count, uint8_t *out)
   uint8_t *keyPtr = out;
   uint32_t keyLen = (count + 3) / 4;  // 2-bits rounded to full byte
   uint8_t *dataPtr = keyPtr + keyLen; // variable byte data after all keys
-#ifdef __AVX__
-
-  uint32_t count_quads = count / 4;
-  count -= 4 * count_quads;
-  for (uint32_t c = 0; c < count_quads; c++) {
-    dataPtr += streamvbyte_encode_quad(in, dataPtr, keyPtr);
-    keyPtr++;
-    in += 4;
+#ifdef STREAMVBYTE_X64
+  if(streamvbyte_ssse3()) {
+    uint32_t count_quads = count / 4;
+    count -= 4 * count_quads;
+    for (uint32_t c = 0; c < count_quads; c++) {
+      dataPtr += streamvbyte_encode_quad(in, dataPtr, keyPtr);
+      keyPtr++;
+      in += 4;
+    }
   }
 
 #endif

@@ -26,7 +26,7 @@
 
 
 
-#ifdef __AVX__
+#ifdef STREAMVBYTE_X64
 #include "streamvbytedelta_x64_encode.c"
 #else
 static uint8_t _encode_data(uint32_t val, uint8_t *__restrict__ *dataPtrPtr) {
@@ -89,8 +89,10 @@ static uint8_t *svb_encode_scalar_d1_init(const uint32_t *in,
 
 size_t streamvbyte_delta_encode(const uint32_t *in, uint32_t count, uint8_t *out,
                                 uint32_t prev) {
-#ifdef __AVX__
-  return streamvbyte_encode_SSSE3_d1_init(in,count,out,prev);
+#ifdef STREAMVBYTE_X64
+  if(streamvbyte_ssse3()) {
+    return streamvbyte_encode_SSSE3_d1_init(in,count,out,prev);
+  }
 #else
   uint8_t *keyPtr = out;             // keys come immediately after 32-bit count
   uint32_t keyLen = (count + 3) / 4; // 2-bits rounded to full byte

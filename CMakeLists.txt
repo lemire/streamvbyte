@@ -72,12 +72,6 @@ install(FILES
 install(
   TARGETS streamvbyte streamvbyte_static
   DESTINATION lib)
-## -march=native is not supported on some platforms
-if(NOT MSVC)
-if(NOT STREAMVBYTE_DISABLE_NATIVE)
-set(OPT_FLAGS "-march=native")
-endif()
-endif()
 
 set(CMAKE_C_FLAGS "${STD_FLAGS} ${OPT_FLAGS} ${INCLUDE_FLAGS} ${WARNING_FLAGS} ${SANITIZE_FLAGS} ")
 

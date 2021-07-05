@@ -8,7 +8,7 @@
 #include <x86intrin.h>
 #endif
 
-#ifdef __AVX__
+#ifdef STREAMVBYTE_X64
 #include "streamvbyte_shuffle_tables_0124_decode.h"
 #endif
 
@@ -16,9 +16,7 @@
 
 
 
-#ifdef __AVX__ // though we do not require AVX per se, it is a macro that MSVC
-               // will issue
-
+#ifdef STREAMVBYTE_X64 
 static inline __m128i _decode_avx(uint32_t key,
                                   const uint8_t *__restrict__ *dataPtrPtr) {
   uint8_t len;
@@ -35,7 +33,7 @@ static inline void _write_avx(uint32_t *out, __m128i Vec) {
   _mm_storeu_si128((__m128i *)out, Vec);
 }
 
-#endif // __AVX__
+#endif // STREAMVBYTE_X64
 
 static inline uint32_t _decode_data(const uint8_t **dataPtrPtr, uint8_t code) {
   const uint8_t *dataPtr = *dataPtrPtr;
@@ -80,8 +78,7 @@ static const uint8_t *svb_decode_scalar(uint32_t *outPtr, const uint8_t *keyPtr,
   return dataPtr; // pointer to first unused byte after end
 }
 
-#ifdef __AVX__ // though we do not require AVX per se, it is a macro that MSVC
-               // will issue
+#ifdef STREAMVBYTE_X64
 
 static const uint8_t *svb_decode_avx_simple(uint32_t *out,
                                             const uint8_t *__restrict__ keyPtr,
@@ -173,11 +170,13 @@ size_t streamvbyte_decode_0124(const uint8_t *in, uint32_t *out, uint32_t count)
   uint32_t keyLen = ((count + 3) / 4);      // 2-bits per key (rounded up)
   const uint8_t *dataPtr = keyPtr + keyLen; // data starts at end of keys
 
-#ifdef __AVX__
-  dataPtr = svb_decode_avx_simple(out, keyPtr, dataPtr, count);
-  out += count & ~ 31;
-  keyPtr += (count/4) & ~ 7;
-  count &= 31;
+#ifdef STREAMVBYTE_X64
+  if(streamvbyte_ssse3()) {
+    dataPtr = svb_decode_avx_simple(out, keyPtr, dataPtr, count);
+    out += count & ~ 31;
+    keyPtr += (count/4) & ~ 7;
+    count &= 31;
+  }
 #endif
 
   return svb_decode_scalar(out, keyPtr, dataPtr, count) - in;
