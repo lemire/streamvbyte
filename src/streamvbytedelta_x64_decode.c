@@ -1,6 +1,7 @@
 #include <string.h> // for memcpy
 #include "streamvbyte_shuffle_tables_decode.h"
-
+#include "streamvbyte_isadetection.h"
+#ifdef STREAMVBYTE_X64
 static inline __m128i _decode_avx(uint32_t key,
                                   const uint8_t *__restrict__ *dataPtrPtr) {
   uint8_t len = lengthTable[key];
@@ -163,3 +164,4 @@ const uint8_t *svb_decode_avx_d1_init(uint32_t *out,
   return svb_decode_scalar_d1_init(out, keyPtr + consumedkeys, dataPtr,
                                    count & 31, prev);
 }
+#endif

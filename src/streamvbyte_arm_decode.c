@@ -1,5 +1,8 @@
 
 
+#include "streamvbyte_isadetection.h"
+#ifdef STREAMVBYTE_ARM
+#include "streamvbyte_shuffle_tables_decode.h"
 #ifdef __aarch64__
 typedef uint8x16_t decode_t;
 #else
@@ -48,3 +51,4 @@ static const uint8_t *svb_decode_vector(uint32_t *out, const uint8_t *keyPtr, co
 
   return dataPtr;
 }
+#endif

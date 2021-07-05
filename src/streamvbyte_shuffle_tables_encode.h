@@ -1,6 +1,7 @@
-
+#ifndef STREAMVBYTE_SHUFFLE_TABLES_ENCODE_H
+#define STREAMVBYTE_SHUFFLE_TABLES_ENCODE_H
+#include <stdint.h>
 // encoding:
-#ifdef STREAMVBYTE_X64
 static const uint8_t shuf_lut[64*16] = {
 	0x00, 0x04, 0x08, 0x0C, 0x0D, 0x0E, 0x0F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 	0x00, 0x01, 0x04, 0x08, 0x0C, 0x0D, 0x0E, 0x0F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -88,7 +89,6 @@ static const uint8_t len_lut[256] = {
 	10, 11, 12, 13, 11, 12, 13, 14, 12, 13, 14, 15, 13, 14, 15, 16,
 };
 
-#else
 
 static uint8_t encodingShuffleTable[256][16] = {
  {  0,  4,  8, 12, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },    // 1111

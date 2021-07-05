@@ -1,6 +1,6 @@
 #ifndef STREAMVBYTE_SHUFFLE_TABLES_H
 #define STREAMVBYTE_SHUFFLE_TABLES_H
-
+#include <stdint.h>
 // using 1,2,3,4 bytes per value
 static uint8_t lengthTable[256] ={
   4,  5,  6,  7,  5,  6,  7,  8,  6,  7,  8,  9,  7,  8,  9, 10,

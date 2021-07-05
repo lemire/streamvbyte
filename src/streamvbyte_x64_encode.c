@@ -1,6 +1,5 @@
-
-
-
+#include "streamvbyte_isadetection.h"
+#ifdef STREAMVBYTE_X64
 // contributed by aqrit 
 size_t streamvbyte_encode_SSSE3 (const uint32_t* in, uint32_t count, uint8_t* out) {
 	uint32_t keyLen = (count >> 2) + (((count & 3) + 3) >> 2); // 2-bits per each rounded up to byte boundry
@@ -53,3 +52,4 @@ size_t streamvbyte_encode_SSSE3 (const uint32_t* in, uint32_t count, uint8_t* ou
 
 	return dataPtr - out;
 }
+#endif

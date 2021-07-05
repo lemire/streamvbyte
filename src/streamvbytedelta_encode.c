@@ -1,4 +1,6 @@
 #include "streamvbytedelta.h"
+#include "streamvbyte_isadetection.h"
+
 #if defined(_MSC_VER)
 /* Microsoft C/C++-compatible compiler */
 #include <intrin.h>

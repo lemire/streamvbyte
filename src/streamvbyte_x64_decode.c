@@ -1,4 +1,5 @@
-
+#include "streamvbyte_isadetection.h"
+#ifdef STREAMVBYTE_X64
 static inline __m128i _decode_avx(uint32_t key,
                                   const uint8_t *__restrict__ *dataPtrPtr) {
   uint8_t len;
@@ -99,3 +100,4 @@ const uint8_t *svb_decode_avx_simple(uint32_t *out,
 
   return dataPtr;
 }
+#endif

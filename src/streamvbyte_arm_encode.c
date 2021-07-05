@@ -1,5 +1,6 @@
-
-
+#include "streamvbyte_isadetection.h"
+#include "streamvbyte_shuffle_tables_encode.h"
+#ifdef STREAMVBYTE_ARM
 static const uint8_t pgatherlo[] = {12, 8, 4, 0, 12, 8, 4, 0}; // apparently only used in streamvbyte_encode4
 #define concat (1 | 1 << 10 | 1 << 20 | 1 << 30)
 #define sum (1 | 1 << 8 | 1 << 16 | 1 << 24)
@@ -53,3 +54,4 @@ static inline size_t streamvbyte_encode_quad(const uint32_t *__restrict__ in, ui
 
   return streamvbyte_encode4(inq, outData, outCode);
 }
+#endif

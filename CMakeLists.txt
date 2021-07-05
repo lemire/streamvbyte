@@ -23,6 +23,12 @@ set(STREAMVBYTE_SRCS
   ${PROJECT_SOURCE_DIR}/src/streamvbyte_encode.c
   ${PROJECT_SOURCE_DIR}/src/streamvbyte_decode.c
   ${PROJECT_SOURCE_DIR}/src/streamvbyte_zigzag.c
+  ${PROJECT_SOURCE_DIR}/src/streamvbyte_x64_encode.c 
+  ${PROJECT_SOURCE_DIR}/src/streamvbyte_x64_decode.c 
+  ${PROJECT_SOURCE_DIR}/src/streamvbyte_arm_encode.c 
+  ${PROJECT_SOURCE_DIR}/src/streamvbyte_arm_decode.c 
+  ${PROJECT_SOURCE_DIR}/src/streamvbytedelta_x64_encode.c
+  ${PROJECT_SOURCE_DIR}/src/streamvbytedelta_x64_decode.c
   ${PROJECT_SOURCE_DIR}/src/streamvbytedelta_encode.c
   ${PROJECT_SOURCE_DIR}/src/streamvbytedelta_decode.c
   ${PROJECT_SOURCE_DIR}/src/streamvbyte_0124_encode.c
