@@ -53,11 +53,7 @@ static uint8_t *svb_encode_scalar(const uint32_t *in,
 }
 
 #ifdef STREAMVBYTE_X64
-<<<<<<< HEAD
 STREAMVBYTE_TARGET_SSSE3
-=======
-
->>>>>>> master
 static size_t streamvbyte_encode4(__m128i in, uint8_t *outData, uint8_t *outCode) {
   const __m128i Ones = _mm_set1_epi32(0x01010101);
   const __m128i GatherBits = _mm_set1_epi32(0x08040102);
