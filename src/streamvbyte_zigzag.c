@@ -20,7 +20,7 @@ void zigzag_delta_encode(const int32_t * in, uint32_t * out, size_t N, int32_t p
 
 static inline
 int32_t _zigzag_decode_32 (uint32_t val) {
-	return (val >> 1) ^ -(val & 1);
+	return (val >> 1) ^ (0-(val & 1));
 }
 
 
