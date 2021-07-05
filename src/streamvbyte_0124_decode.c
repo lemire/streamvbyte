@@ -1,12 +1,5 @@
 #include "streamvbyte.h"
-
-#if defined(_MSC_VER)
-/* Microsoft C/C++-compatible compiler */
-#include <intrin.h>
-#elif defined(__GNUC__) && (defined(__x86_64__) || defined(__i386__))
-/* GCC-compatible compiler, targeting x86/x86-64 */
-#include <x86intrin.h>
-#endif
+#include "streamvbyte_isadetection.h"
 
 #ifdef STREAMVBYTE_X64
 #include "streamvbyte_shuffle_tables_0124_decode.h"
@@ -17,6 +10,7 @@
 
 
 #ifdef STREAMVBYTE_X64 
+STREAMVBYTE_TARGET_SSSE3
 static inline __m128i _decode_avx(uint32_t key,
                                   const uint8_t *__restrict__ *dataPtrPtr) {
   uint8_t len;
@@ -28,10 +22,13 @@ static inline __m128i _decode_avx(uint32_t key,
   *dataPtrPtr += len;
   return Data;
 }
+STREAMVBYTE_UNTARGET_REGION
 
+STREAMVBYTE_TARGET_SSSE3
 static inline void _write_avx(uint32_t *out, __m128i Vec) {
   _mm_storeu_si128((__m128i *)out, Vec);
 }
+STREAMVBYTE_UNTARGET_REGION
 
 #endif // STREAMVBYTE_X64
 
@@ -79,7 +76,7 @@ static const uint8_t *svb_decode_scalar(uint32_t *outPtr, const uint8_t *keyPtr,
 }
 
 #ifdef STREAMVBYTE_X64
-
+STREAMVBYTE_TARGET_SSSE3
 static const uint8_t *svb_decode_avx_simple(uint32_t *out,
                                             const uint8_t *__restrict__ keyPtr,
                                      const uint8_t *__restrict__ dataPtr,
@@ -155,6 +152,7 @@ static const uint8_t *svb_decode_avx_simple(uint32_t *out,
 
   return dataPtr;
 }
+STREAMVBYTE_UNTARGET_REGION
 
 
 #endif

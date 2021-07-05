@@ -1,4 +1,5 @@
 #include "streamvbyte_zigzag.h"
+#include "streamvbyte_isadetection.h"
 
 static inline
 uint32_t _zigzag_encode_32 (uint32_t val) {

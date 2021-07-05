@@ -1,16 +1,6 @@
 #include "streamvbyte.h"
-
-#if defined(_MSC_VER)
-/* Microsoft C/C++-compatible compiler */
-#include <intrin.h>
-#elif defined(__GNUC__) && (defined(__x86_64__) || defined(__i386__))
-/* GCC-compatible compiler, targeting x86/x86-64 */
-#include <x86intrin.h>
-#endif
-
-#ifdef STREAMVBYTE_X64
+#include "streamvbyte_isadetection.h"
 #include "streamvbyte_shuffle_tables_0124_encode.h"
-#endif
 
 #include <string.h> // for memcpy
 
@@ -63,7 +53,7 @@ static uint8_t *svb_encode_scalar(const uint32_t *in,
 }
 
 #ifdef STREAMVBYTE_X64
-
+STREAMVBYTE_TARGET_SSSE3
 static size_t streamvbyte_encode4(__m128i in, uint8_t *outData, uint8_t *outCode) {
   const __m128i Ones = _mm_set1_epi32(0x01010101);
   const __m128i GatherBits = _mm_set1_epi32(0x08040102);
@@ -88,11 +78,14 @@ static size_t streamvbyte_encode4(__m128i in, uint8_t *outData, uint8_t *outCode
   *outCode = (uint8_t)code;
   return length;
 }
+STREAMVBYTE_UNTARGET_REGION
 
+STREAMVBYTE_TARGET_SSSE3
 static size_t streamvbyte_encode_quad(const uint32_t *in, uint8_t *outData, uint8_t *outKey) {
   __m128i vin = _mm_loadu_si128((__m128i *) in );
   return streamvbyte_encode4(vin, outData, outKey);
 }
+STREAMVBYTE_UNTARGET_REGION
 
 #endif
 
@@ -110,7 +103,6 @@ size_t streamvbyte_encode_0124(const uint32_t *in, uint32_t count, uint8_t *out)
       in += 4;
     }
   }
-
 #endif
   return svb_encode_scalar(in, keyPtr, dataPtr, count) - out;
 

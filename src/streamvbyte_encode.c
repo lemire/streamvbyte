@@ -1,32 +1,12 @@
 #include "streamvbyte.h"
-
-#if defined(_MSC_VER)
-/* Microsoft C/C++-compatible compiler */
-#include <intrin.h>
-#elif defined(__GNUC__) && (defined(__x86_64__) || defined(__i386__))
-/* GCC-compatible compiler, targeting x86/x86-64 */
-#include <x86intrin.h>
-#elif defined(__GNUC__) && defined(__ARM_NEON__)
-/* GCC-compatible compiler, targeting ARM with NEON */
-#include <arm_neon.h>
-#elif defined(__GNUC__) && defined(__IWMMXT__)
-/* GCC-compatible compiler, targeting ARM with WMMX */
-#include <mmintrin.h>
-#elif (defined(__GNUC__) || defined(__xlC__)) &&                               \
-    (defined(__VEC__) || defined(__ALTIVEC__))
-/* XLC or GCC-compatible compiler, targeting PowerPC with VMX/VSX */
-#include <altivec.h>
-#elif defined(__GNUC__) && defined(__SPE__)
-/* GCC-compatible compiler, targeting PowerPC with SPE */
-#include <spe.h>
-#endif
+#include "streamvbyte_isadetection.h"
 
 #include <string.h> // for memcpy
 #include "streamvbyte_shuffle_tables_encode.h"
 
 #ifdef STREAMVBYTE_X64
 #include "streamvbyte_x64_encode.c"
-#else
+#endif
 
 static uint8_t _encode_data(uint32_t val, uint8_t *__restrict__ *dataPtrPtr) {
   uint8_t *dataPtr = *dataPtrPtr;
@@ -77,7 +57,6 @@ static uint8_t *svb_encode_scalar(const uint32_t *in,
   *keyPtr = key;  // write last key (no increment needed)
   return dataPtr; // pointer to first unused data byte
 }
-#endif
 
 
 #ifdef __ARM_NEON__
@@ -93,7 +72,7 @@ size_t streamvbyte_encode(const uint32_t *in, uint32_t count, uint8_t *out) {
   if(streamvbyte_ssse3()) {
     return streamvbyte_encode_SSSE3(in,count,out);
   }
-#else
+#endif
   uint8_t *keyPtr = out;
   uint32_t keyLen = (count + 3) / 4;  // 2-bits rounded to full byte
   uint8_t *dataPtr = keyPtr + keyLen; // variable byte data after all keys
@@ -112,5 +91,4 @@ size_t streamvbyte_encode(const uint32_t *in, uint32_t count, uint8_t *out) {
 #endif
 
   return svb_encode_scalar(in, keyPtr, dataPtr, count) - out;
-#endif// no AVX
 }

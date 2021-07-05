@@ -1,27 +1,8 @@
 #include "streamvbytedelta.h"
-#if defined(_MSC_VER)
-/* Microsoft C/C++-compatible compiler */
-#include <intrin.h>
-#elif defined(__GNUC__) && (defined(__x86_64__) || defined(__i386__))
-/* GCC-compatible compiler, targeting x86/x86-64 */
-#include <x86intrin.h>
-#elif defined(__GNUC__) && defined(__ARM_NEON__)
-/* GCC-compatible compiler, targeting ARM with NEON */
-#include <arm_neon.h>
-#elif defined(__GNUC__) && defined(__IWMMXT__)
-/* GCC-compatible compiler, targeting ARM with WMMX */
-#include <mmintrin.h>
-#elif (defined(__GNUC__) || defined(__xlC__)) &&                               \
-    (defined(__VEC__) || defined(__ALTIVEC__))
-/* XLC or GCC-compatible compiler, targeting PowerPC with VMX/VSX */
-#include <altivec.h>
-#elif defined(__GNUC__) && defined(__SPE__)
-/* GCC-compatible compiler, targeting PowerPC with SPE */
-#include <spe.h>
-#endif
+#include "streamvbyte_isadetection.h"
+
 
 #ifdef STREAMVBYTE_X64
-
 #include "streamvbyte_shuffle_tables.h"
 size_t streamvbyte_encode4(__m128i in, uint8_t *outData, uint8_t *outCode);
 #endif
@@ -80,7 +61,6 @@ static uint8_t *svb_encode_scalar_d1_init(const uint32_t *in,
 }
 
 #ifdef STREAMVBYTE_X64
-
 // from streamvbyte.c
 size_t streamvbyte_encode_quad(__m128i in, uint8_t *outData, uint8_t *outCode);
 
@@ -124,9 +104,8 @@ size_t streamvbyte_delta_encode(const uint32_t *in, uint32_t count, uint8_t *out
   if(streamvbyte_ssse3()) {
     return svb_encode_vector_d1_init(in, keyPtr, dataPtr, count, prev) - out;
   }
-#else
-  return svb_encode_scalar_d1_init(in, keyPtr, dataPtr, count, prev) - out;
 #endif
+  return svb_encode_scalar_d1_init(in, keyPtr, dataPtr, count, prev) - out;
 }
 
 #ifdef STREAMVBYTE_X64
@@ -342,7 +321,6 @@ const uint8_t *svb_decode_avx_d1_init(uint32_t *out,
   return svb_decode_scalar_d1_init(out, keyPtr + consumedkeys, dataPtr,
                                    count & 31, prev);
 }
-
 #endif
 
 size_t streamvbyte_delta_decode(const uint8_t *in, uint32_t *out,
@@ -354,7 +332,6 @@ size_t streamvbyte_delta_decode(const uint8_t *in, uint32_t *out,
   if(streamvbyte_ssse3()) {
     return svb_decode_avx_d1_init(out, keyPtr, dataPtr, count, prev) - in;
   }
-#else
-  return svb_decode_scalar_d1_init(out, keyPtr, dataPtr, count, prev) - in;
 #endif
+  return svb_decode_scalar_d1_init(out, keyPtr, dataPtr, count, prev) - in;
 }

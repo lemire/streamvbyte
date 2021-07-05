@@ -1,3 +1,5 @@
+#ifndef STREAMVBYTE_SHUFFLE_TABLES_0124_ENCODE_H
+#define STREAMVBYTE_SHUFFLE_TABLES_0124_ENCODE_H
 // using 0,1,2,4 bytes per value
 static uint8_t lengthTable[256] ={
   0,  1,  2,  4,  1,  2,  3,  5,  2,  3,  4,  6,  4,  5,  6,  8,
@@ -277,3 +279,4 @@ static uint8_t encodingShuffleTable[256][16] = {
  {  0,  1,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, -1, -1 },    // 2333
  {  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15 },    // 3333
 };
+#endif
