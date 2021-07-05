@@ -47,6 +47,36 @@ int zigzagtests() {
     return isok;
 }
 
+// Fixtures from https://developers.google.com/protocol-buffers/docs/encoding#signed_integers
+int zigzagfixturestests() {
+  const int32_t original[] = {0, -1, 1, -2, 2147483647, -2147483648};
+  const uint32_t encoded[] = {0,  1, 2,  3, 4294967294,  4294967295};
+
+  uint32_t out[] = {0xaaaaaaaa, 0xaaaaaaaa, 0xaaaaaaaa, 0xaaaaaaaa, 0xaaaaaaaa, 0xaaaaaaaa};
+
+  zigzag_encode(original, out, 6);
+
+  for (size_t i = 0; i < 6; ++i) {
+    if (encoded[i] != out[i]) {
+      printf("[zigzag_encode] %ju != %ju\n", (uintmax_t)encoded[i], (uintmax_t)out[i]);
+      return -1;
+    }
+  }
+
+  int32_t roundtrip[] = {0x55555555, 0x55555555, 0x55555555, 0x55555555, 0x55555555, 0x55555555};
+
+  zigzag_decode((const uint32_t *)out, roundtrip, 6);
+
+  for (size_t i = 0; i < 6; ++i) {
+    if (original[i] != roundtrip[i]) {
+      printf("[zigzag_decode] %jd != %jd\n", (intmax_t)original[i], (intmax_t)roundtrip[i]);
+      return -1;
+    }
+  }
+
+  return 0;
+}
+
 // return -1 in case of failure
 int basictests() {
   int N = 4096;

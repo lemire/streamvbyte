@@ -2,7 +2,7 @@
 
 static inline
 uint32_t _zigzag_encode_32 (int32_t val) {
-	return (val + val) ^ (val >> 31);
+	return ((uint32_t)val << (uint32_t)1) ^ (uint32_t)(-(int32_t)((uint32_t)val >> (uint32_t)31));
 }
 
 void zigzag_encode(const int32_t * in, uint32_t * out, size_t N) {
@@ -19,7 +19,7 @@ void zigzag_delta_encode(const int32_t * in, uint32_t * out, size_t N, int32_t p
 
 static inline
 int32_t _zigzag_decode_32 (uint32_t val) {
-	return (val >> 1) ^ -(val & 1);
+	return (int32_t)((val >> (uint32_t)1) ^ (uint32_t)(-(int32_t)(val & (uint32_t)1)));
 }
 
 
