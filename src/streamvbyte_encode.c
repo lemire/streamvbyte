@@ -24,7 +24,7 @@
 #include <string.h> // for memcpy
 #include "streamvbyte_shuffle_tables_encode.h"
 
-#ifdef __AVX__
+#ifdef STREAMVBYTE_X64
 #include "streamvbyte_x64_encode.c"
 #else
 
@@ -89,8 +89,10 @@ static uint8_t *svb_encode_scalar(const uint32_t *in,
 // Encode an array of a given length read from in to bout in streamvbyte format.
 // Returns the number of bytes written.
 size_t streamvbyte_encode(const uint32_t *in, uint32_t count, uint8_t *out) {
-#ifdef __AVX__
-return streamvbyte_encode_SSSE3(in,count,out);
+#ifdef STREAMVBYTE_X64
+  if(streamvbyte_ssse3()) {
+    return streamvbyte_encode_SSSE3(in,count,out);
+  }
 #else
   uint8_t *keyPtr = out;
   uint32_t keyLen = (count + 3) / 4;  // 2-bits rounded to full byte

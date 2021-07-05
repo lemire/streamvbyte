@@ -20,7 +20,7 @@
 #include <spe.h>
 #endif
 
-#ifdef __AVX__
+#ifdef STREAMVBYTE_X64
 
 #include "streamvbyte_shuffle_tables.h"
 size_t streamvbyte_encode4(__m128i in, uint8_t *outData, uint8_t *outCode);
@@ -79,7 +79,7 @@ static uint8_t *svb_encode_scalar_d1_init(const uint32_t *in,
   return dataPtr; // pointer to first unused data byte
 }
 
-#ifdef __AVX__
+#ifdef STREAMVBYTE_X64
 
 // from streamvbyte.c
 size_t streamvbyte_encode_quad(__m128i in, uint8_t *outData, uint8_t *outCode);
@@ -120,14 +120,16 @@ size_t streamvbyte_delta_encode(const uint32_t *in, uint32_t count, uint8_t *out
   uint8_t *keyPtr = out;             // keys come immediately after 32-bit count
   uint32_t keyLen = (count + 3) / 4; // 2-bits rounded to full byte
   uint8_t *dataPtr = keyPtr + keyLen; // variable byte data after all keys
-#ifdef __AVX__
-  return svb_encode_vector_d1_init(in, keyPtr, dataPtr, count, prev) - out;
+#ifdef STREAMVBYTE_X64
+  if(streamvbyte_ssse3()) {
+    return svb_encode_vector_d1_init(in, keyPtr, dataPtr, count, prev) - out;
+  }
 #else
   return svb_encode_scalar_d1_init(in, keyPtr, dataPtr, count, prev) - out;
 #endif
 }
 
-#ifdef __AVX__
+#ifdef STREAMVBYTE_X64
 static inline __m128i _decode_avx(uint32_t key,
                                   const uint8_t *__restrict__ *dataPtrPtr) {
   uint8_t len = lengthTable[key];
@@ -232,7 +234,7 @@ static const uint8_t *svb_decode_scalar_d1_init(uint32_t *outPtr,
   return dataPtr; // pointer to first unused byte after end
 }
 
-#ifdef __AVX__
+#ifdef STREAMVBYTE_X64
 const uint8_t *svb_decode_avx_d1_init(uint32_t *out,
                                       const uint8_t *__restrict__ keyPtr,
                                       const uint8_t *__restrict__ dataPtr,
@@ -348,8 +350,10 @@ size_t streamvbyte_delta_decode(const uint8_t *in, uint32_t *out,
   uint32_t keyLen = ((count + 3) / 4); // 2-bits per key (rounded up)
   const uint8_t *keyPtr = in;
   const uint8_t *dataPtr = keyPtr + keyLen; // data starts at end of keys
-#ifdef __AVX__
-  return svb_decode_avx_d1_init(out, keyPtr, dataPtr, count, prev) - in;
+#ifdef STREAMVBYTE_X64
+  if(streamvbyte_ssse3()) {
+    return svb_decode_avx_d1_init(out, keyPtr, dataPtr, count, prev) - in;
+  }
 #else
   return svb_decode_scalar_d1_init(out, keyPtr, dataPtr, count, prev) - in;
 #endif

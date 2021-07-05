@@ -71,7 +71,7 @@ static const uint8_t *svb_decode_scalar_d1_init(uint32_t *outPtr,
   return dataPtr; // pointer to first unused byte after end
 }
 
-#ifdef __AVX__
+#ifdef STREAMVBYTE_X64
 #include "streamvbytedelta_x64_decode.c"
 #endif
 
@@ -87,8 +87,10 @@ size_t streamvbyte_delta_decode(const uint8_t *in, uint32_t *out,
   uint32_t keyLen = ((count + 3) / 4); // 2-bits per key (rounded up)
   const uint8_t *keyPtr = in;
   const uint8_t *dataPtr = keyPtr + keyLen; // data starts at end of keys
-#ifdef __AVX__
-  return svb_decode_avx_d1_init(out, keyPtr, dataPtr, count, prev) - in;
+#ifdef STREAMVBYTE_X64
+  if(streamvbyte_ssse3()) {
+    return svb_decode_avx_d1_init(out, keyPtr, dataPtr, count, prev) - in;
+  }
 #else
   return svb_decode_scalar_d1_init(out, keyPtr, dataPtr, count, prev) - in;
 #endif

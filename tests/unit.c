@@ -295,8 +295,10 @@ int main() {
     printf("Warning: produced compressed bytes may not be interoperable with "
            "little endian systems.\n");
   }
-#ifdef __AVX__
-  printf("Code was vectorized (x64).\n");
+#ifdef STREAMVBYTE_X64
+  if(streamvbyte_ssse3()) {
+    printf("Code was vectorized (x64).\n");
+  }
 #elif defined(__ARM_NEON__)
   printf("Code was vectorized (ARM NEON).\n");
 #else

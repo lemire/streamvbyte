@@ -50,17 +50,12 @@ install(FILES
 install(
   TARGETS streamvbyte streamvbyte_static
   DESTINATION lib)
-## -march=native is not supported on some platforms
-if(NOT MSVC AND NOT STREAMVBYTE_DISABLE_NATIVE AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(AMD64.*|x64.*|x86.*)" )
-  set(OPT_FLAGS "-march=native")
-endif()
 
 option(STREAMVBYTE_SANITIZE_UNDEFINED "Sanitize undefined behavior" OFF)
 if(STREAMVBYTE_SANITIZE_UNDEFINED)
   add_compile_options(-fsanitize=undefined -fno-sanitize-recover=all)
   add_link_options(-fsanitize=undefined -fno-sanitize-recover=all)
 endif()
-
 
 MESSAGE( STATUS "CMAKE_SYSTEM_PROCESSOR: " ${CMAKE_SYSTEM_PROCESSOR})
 MESSAGE( STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE} ) # this tends to be "sticky" so you can remain unknowingly in debug mode
