@@ -1,6 +1,6 @@
 streamvbyte
 ===========
-[![Build Status](https://travis-ci.org/lemire/streamvbyte.png)](https://travis-ci.org/lemire/streamvbyte)
+[![Ubuntu 20.04 CI (GCC 9)](https://github.com/lemire/streamvbyte/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/lemire/streamvbyte/actions/workflows/ubuntu.yml)
 
 StreamVByte is a new integer compression technique that applies SIMD instructions (vectorization) to
 Google's Group Varint approach. The net result is faster than other byte-oriented compression
