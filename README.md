@@ -12,7 +12,7 @@ The approach is patent-free, the code is available under the Apache License.
 
 It includes fast differential coding.
 
-It assumes a recent Intel processor (e.g., haswell or better, though we provide runtime dispatching for compatibility with legacy systems) or an ARM processor with NEON instructions (which is almost all of them).
+It assumes a recent Intel processor (e.g., haswell or better, though we provide runtime dispatching for compatibility with legacy systems) or an ARM processor with NEON instructions (which is almost all of them except for the tiny cores). POWER and big-endian processorsare unsupported at this time.
 
 The code should build using most standard-compliant C99 compilers. The provided makefile
 expects a Linux-like system. We have a CMake build.
