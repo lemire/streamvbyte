@@ -1,6 +1,7 @@
 streamvbyte
 ===========
 [![Ubuntu 20.04 CI (GCC 9)](https://github.com/lemire/streamvbyte/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/lemire/streamvbyte/actions/workflows/ubuntu.yml)
+[![VS16-CI](https://github.com/lemire/streamvbyte/actions/workflows/vs.yml/badge.svg)](https://github.com/lemire/streamvbyte/actions/workflows/vs.yml)
 
 StreamVByte is a new integer compression technique that applies SIMD instructions (vectorization) to
 Google's Group Varint approach. The net result is faster than other byte-oriented compression
@@ -11,10 +12,10 @@ The approach is patent-free, the code is available under the Apache License.
 
 It includes fast differential coding.
 
-It assumes a recent Intel processor (e.g., haswell or better) or an ARM processor with NEON instructions (which is almost all of them).
+It assumes a recent Intel processor (e.g., haswell or better, though we provide runtime dispatching for compatibility with legacy systems) or an ARM processor with NEON instructions (which is almost all of them).
 
 The code should build using most standard-compliant C99 compilers. The provided makefile
-expects a Linux-like system.
+expects a Linux-like system. We have a CMake build.
 
 
 # Users
