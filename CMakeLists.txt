@@ -6,7 +6,8 @@ if (NOT CMAKE_BUILD_TYPE)
 endif()
 
 project(STREAMVBYTE VERSION "0.0.1")
-
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 if (MSVC)
     add_definitions(
         "-D__restrict__=__restrict"

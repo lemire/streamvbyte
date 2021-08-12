@@ -35,8 +35,9 @@ Usage with Makefile:
 
 Usage with CMake:
 
-The cmake build system also offers a `libstreamvbyte_static.a` in addition to
-`libstreamvbyte.so`.
+The cmake build system also offers a `libstreamvbyte_static` static library
+(`libstreamvbyte_static` under linux) in addition to
+`libstreamvbyte` shared library (`libstreamvbyte.so` under linux).
 
 `-DCMAKE_INSTALL_PREFIX:PATH=/path/to/install` is optional.
 Defaults to /usr/local{include,lib}
