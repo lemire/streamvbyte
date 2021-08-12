@@ -5,7 +5,11 @@ if (NOT CMAKE_BUILD_TYPE)
                 set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
 endif()
 
-project(STREAMVBYTE VERSION "0.0.1")
+project(STREAMVBYTE VERSION "1.0.0")
+
+set(STREAMVBYTE_LIB_VERSION "1.0.0" CACHE STRING "streamvbyte library version")
+set(STREAMVBYTE_LIB_SOVERSION "1" CACHE STRING "streamvbyte library soversion")
+
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 if (MSVC)
@@ -34,6 +38,20 @@ add_library(streamvbyte_static STATIC "${STREAMVBYTE_SRCS}")
 target_link_libraries(streamvbyte_static ${BASE_FLAGS})
 add_library(streamvbyte SHARED "${STREAMVBYTE_SRCS}")
 target_link_libraries(streamvbyte ${BASE_FLAGS})
+
+set_target_properties(
+    streamvbyte PROPERTIES
+    VERSION "${STREAMVBYTE_LIB_VERSION}"
+    SOVERSION "${STREAMVBYTE_LIB_SOVERSION}"
+    WINDOWS_EXPORT_ALL_SYMBOLS YES
+)
+set_target_properties(
+    streamvbyte_static PROPERTIES
+    VERSION "${STREAMVBYTE_LIB_VERSION}"
+    SOVERSION "${STREAMVBYTE_LIB_SOVERSION}"
+    WINDOWS_EXPORT_ALL_SYMBOLS YES
+)
+
 target_include_directories(
   streamvbyte
   PUBLIC ${PROJECT_SOURCE_DIR}/include
