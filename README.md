@@ -134,6 +134,7 @@ Stream VByte in other languages
 
 * There is a [Rust version](https://bitbucket.org/marshallpierce/stream-vbyte-rust) by Marshall Pierce.
 * There is a [Go version](https://github.com/nelz9999/stream-vbyte-go) by Nelz.
+* There is an accelerated [Go version](https://github.com/theMPatel/streamvbyte-simdgo) by Milan Patel.
 
 Format Specification
 ---------------------
