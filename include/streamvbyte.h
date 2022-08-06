@@ -10,6 +10,8 @@
 extern "C" {
 #endif
 
+#define STREAMVBYTE_PADDING 16
+
 // Encode an array of a given length read from in to bout in varint format.
 // Returns the number of bytes written.
 // The number of values being stored (length) is not encoded in the compressed stream,
@@ -33,7 +35,7 @@ static inline size_t streamvbyte_max_compressedbytes(const uint32_t length) {
    size_t cb = (length + 3) / 4;
    // maximum number of control bytes:
    size_t db = (size_t) length * sizeof(uint32_t);
-   return cb + db;
+   return cb + db + STREAMVBYTE_PADDING;
 }
 
 // return the exact number of compressed bytes given length input integers
@@ -76,7 +78,8 @@ static inline size_t streamvbyte_compressedbytes_0124(const uint32_t *in, uint32
 
 
 // Read "length" 32-bit integers in varint format from in, storing the result in out.
-// Returns the number of bytes read.
+// Returns the number of bytes read. We may read up to STREAMVBYTE_PADDING extra bytes
+// from the input buffer (these bytes are read but never used). 
 // The caller is responsible for knowing how many integers ("length") are to be read:
 // this information ought to be stored somehow.
 // There is no alignment requirement on the "in" pointer.
