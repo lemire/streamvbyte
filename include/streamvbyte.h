@@ -30,6 +30,7 @@ size_t streamvbyte_encode_0124(const uint32_t *in, uint32_t length, uint8_t *out
 // return the maximum number of compressed bytes given length input integers
 // in the worst case we overestimate data bytes required by four, see below
 // for a function you can run upfront over your data to compute allocations
+// It includes the STREAMVBYTE_PADDING bytes.
 static inline size_t streamvbyte_max_compressedbytes(const uint32_t length) {
    // number of control bytes:
    size_t cb = (length + 3) / 4;
@@ -41,6 +42,9 @@ static inline size_t streamvbyte_max_compressedbytes(const uint32_t length) {
 // return the exact number of compressed bytes given length input integers
 // runtime in O(n) wrt. in; use streamvbyte_max_compressedbyte if you
 // care about speed more than potentially over-allocating memory
+// Our decoding functions may read (but not use) STREAMVBYTE_PADDING extra bytes beyond
+// the compressed data: the user needs to ensure that this region is allocated, and it
+// is not included by streamvbyte_compressedbytes.
 static inline size_t streamvbyte_compressedbytes(const uint32_t *in, uint32_t length) {
    // number of control bytes:
    size_t cb = (length + 3) / 4;
@@ -60,6 +64,9 @@ static inline size_t streamvbyte_compressedbytes(const uint32_t *in, uint32_t le
 // return the exact number of compressed bytes given length input integers
 // runtime in O(n) wrt. in; use streamvbyte_max_compressedbyte if you
 // care about speed more than potentially over-allocating memory
+// Our decoding functions may read (but not use) STREAMVBYTE_PADDING extra bytes beyond
+// the compressed data: the user needs to ensure that this region is allocated, and it
+// is not included by streamvbyte_compressedbytes.
 static inline size_t streamvbyte_compressedbytes_0124(const uint32_t *in, uint32_t length) {
    // number of control bytes:
    size_t cb = (length + 3) / 4;
@@ -79,7 +86,7 @@ static inline size_t streamvbyte_compressedbytes_0124(const uint32_t *in, uint32
 
 // Read "length" 32-bit integers in varint format from in, storing the result in out.
 // Returns the number of bytes read. We may read up to STREAMVBYTE_PADDING extra bytes
-// from the input buffer (these bytes are read but never used). 
+// from the input buffer (these bytes are read but never used).
 // The caller is responsible for knowing how many integers ("length") are to be read:
 // this information ought to be stored somehow.
 // There is no alignment requirement on the "in" pointer.
