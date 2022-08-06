@@ -230,7 +230,7 @@ static inline bool streamvbyte_ssse3() {
 }
 #else
 static inline bool streamvbyte_ssse3() {
-  return  (dynamic_streamvbyte_detect_supported_architectures() & streamvbyte_SSSE3) == streamvbyte_SSSE3;
+  return  (streamvbyte_detect_supported_architectures() & streamvbyte_SSSE3) == streamvbyte_SSSE3;
 }
 #endif
 

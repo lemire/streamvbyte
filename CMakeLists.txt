@@ -1,10 +1,5 @@
 cmake_minimum_required(VERSION 3.3)
 set(CMAKE_MACOSX_RPATH OFF)
-if (NOT CMAKE_BUILD_TYPE)
-                message(STATUS "No build type selected, default to Release")
-                set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
-endif()
-
 project(STREAMVBYTE VERSION "1.0.0")
 
 set(STREAMVBYTE_LIB_VERSION "1.0.0" CACHE STRING "streamvbyte library version")
@@ -12,6 +7,24 @@ set(STREAMVBYTE_LIB_SOVERSION "1" CACHE STRING "streamvbyte library soversion")
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
+option(STREAMVBYTE_SANITIZE "Sanitize addresses" OFF)
+if (NOT CMAKE_BUILD_TYPE)
+  message(STATUS "No build type selected")
+  if(STREAMVBYTE_SANITIZE)
+    message(STATUS "Default to Debug")
+    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build." FORCE)
+  else()
+    message(STATUS "Default to Release")
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+  endif()
+endif()
+
+if(STREAMVBYTE_SANITIZE)
+  message(STATUS "Enabling memory sanitizer.")
+  add_compile_options(-fsanitize=address  -fno-omit-frame-pointer -fno-sanitize-recover=all)
+  add_compile_definitions(ASAN_OPTIONS=detect_leaks=1)
+endif()
+
 if (MSVC)
     add_definitions(
         "-D__restrict__=__restrict"
@@ -69,6 +82,7 @@ install(FILES
 install(
   TARGETS streamvbyte streamvbyte_static
   DESTINATION lib)
+
 
 option(STREAMVBYTE_SANITIZE_UNDEFINED "Sanitize undefined behavior" OFF)
 if(STREAMVBYTE_SANITIZE_UNDEFINED)
