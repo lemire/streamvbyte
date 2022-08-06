@@ -20,9 +20,9 @@ expects a Linux-like system. We have a CMake build.
 
 # Users
 
-This library is used by 
+This library is used by
 
- * [UpscaleDB](https://github.com/cruppstahl/upscaledb), 
+ * [UpscaleDB](https://github.com/cruppstahl/upscaledb),
  * Redis' [RediSearch](https://github.com/RedisLabsModules/RediSearch),
  * [Facebook Thrift](https://github.com/facebook/fbthrift),
  * [Trinity Information Retrieval framework](https://github.com/phaistos-networks/Trinity).
@@ -73,8 +73,10 @@ size_t compsize = streamvbyte_delta_encode(datain, N, compressedbuffer,0); // en
 streamvbyte_delta_decode(compressedbuffer, recovdata, N,0); // decoding (fast)
 ```
 You have to know how many integers were coded when you decompress. You can store this
-information along with the compressed stream.
+information along with the compressed stream. The
 
+During decoding, the library may read up to `STREAMVBYTE_PADDING` extra bytes
+from the input buffer (these bytes are read but never used).
 
 Signed integers
 -----------------
