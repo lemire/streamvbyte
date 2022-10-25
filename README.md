@@ -24,6 +24,7 @@ This library is used by
 
  * [UpscaleDB](https://github.com/cruppstahl/upscaledb),
  * Redis' [RediSearch](https://github.com/RedisLabsModules/RediSearch),
+ * [StarRocks](https://github.com/StarRocks/starrocks/),
  * [Facebook Thrift](https://github.com/facebook/fbthrift),
  * [Trinity Information Retrieval framework](https://github.com/phaistos-networks/Trinity).
 
