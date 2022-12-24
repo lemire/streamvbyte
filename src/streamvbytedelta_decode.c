@@ -62,8 +62,8 @@ size_t streamvbyte_delta_decode(const uint8_t *in, uint32_t *out,
   const uint8_t *keyPtr = in;
   const uint8_t *dataPtr = keyPtr + keyLen; // data starts at end of keys
 #ifdef STREAMVBYTE_X64
-  if(streamvbyte_ssse3()) {
-    return svb_decode_avx_d1_init(out, keyPtr, dataPtr, count, prev) - in;
+  if(streamvbyte_sse41()) {
+    return svb_decode_sse41_d1_init(out, keyPtr, dataPtr, count, prev) - in;
   }
 #endif
   return svb_decode_scalar_d1_init(out, keyPtr, dataPtr, count, prev) - in;

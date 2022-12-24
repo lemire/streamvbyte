@@ -2,8 +2,8 @@
 #include "streamvbyte_shuffle_tables_decode.h"
 #include "streamvbyte_isadetection.h"
 #ifdef STREAMVBYTE_X64
-STREAMVBYTE_TARGET_SSSE3
-static inline __m128i _decode_avx(uint32_t key,
+STREAMVBYTE_TARGET_SSE41
+static inline __m128i _decode_sse41(uint32_t key,
                                   const uint8_t *__restrict__ *dataPtrPtr) {
   uint8_t len = lengthTable[key];
   __m128i Data = _mm_loadu_si128((__m128i *)*dataPtrPtr);
@@ -16,14 +16,14 @@ static inline __m128i _decode_avx(uint32_t key,
 }
 STREAMVBYTE_UNTARGET_REGION
 #define BroadcastLastXMM 0xFF // bits 0-7 all set to choose highest element
-STREAMVBYTE_TARGET_SSSE3
-static inline void _write_avx(uint32_t *out, __m128i Vec) {
+STREAMVBYTE_TARGET_SSE41
+static inline void _write_sse41(uint32_t *out, __m128i Vec) {
   _mm_storeu_si128((__m128i *)out, Vec);
 }
 STREAMVBYTE_UNTARGET_REGION
 
-STREAMVBYTE_TARGET_SSSE3
-static __m128i _write_avx_d1(uint32_t *out, __m128i Vec, __m128i Prev) {
+STREAMVBYTE_TARGET_SSE41
+static __m128i _write_sse41_d1(uint32_t *out, __m128i Vec, __m128i Prev) {
   __m128i Add = _mm_slli_si128(Vec, 4); // Cycle 1: [- A B C] (already done)
   Prev = _mm_shuffle_epi32(Prev, BroadcastLastXMM); // Cycle 2: [P P P P]
   Vec = _mm_add_epi32(Vec, Add);                    // Cycle 2: [A AB BC CD]
@@ -31,14 +31,14 @@ static __m128i _write_avx_d1(uint32_t *out, __m128i Vec, __m128i Prev) {
   Vec = _mm_add_epi32(Vec, Prev);                   // Cycle 3: [PA PAB PBC PCD]
   Vec = _mm_add_epi32(Vec, Add); // Cycle 4: [PA PAB PABC PABCD]
 
-  _write_avx(out, Vec);
+  _write_sse41(out, Vec);
   return Vec;
 }
 STREAMVBYTE_UNTARGET_REGION
 
 
-STREAMVBYTE_TARGET_SSSE3
-static inline __m128i _write_16bit_avx_d1(uint32_t *out, __m128i Vec,
+STREAMVBYTE_TARGET_SSE41
+static inline __m128i _write_16bit_sse41_d1(uint32_t *out, __m128i Vec,
                                           __m128i Prev) {
 #ifndef _MSC_VER
   __m128i High16To32 = {0xFFFF0B0AFFFF0908, 0xFFFF0F0EFFFF0D0C};
@@ -57,14 +57,14 @@ static inline __m128i _write_16bit_avx_d1(uint32_t *out, __m128i Vec,
   __m128i V2 =
       _mm_shuffle_epi8(Vec, High16To32); // [BCDE CDEF DEFG EFGH] (32-bit)
   V2 = _mm_add_epi32(V1, V2); // [PABCDE PABCDEF PABCDEFG PABCDEFGH] (32-bit)
-  _write_avx(out, V1);
-  _write_avx(out + 4, V2);
+  _write_sse41(out, V1);
+  _write_sse41(out + 4, V2);
   return V2;
 }
 STREAMVBYTE_UNTARGET_REGION
 
-STREAMVBYTE_TARGET_SSSE3
-const uint8_t *svb_decode_avx_d1_init(uint32_t *out,
+STREAMVBYTE_TARGET_SSE41
+const uint8_t *svb_decode_sse41_d1_init(uint32_t *out,
                                       const uint8_t *__restrict__ keyPtr,
                                       const uint8_t *__restrict__ dataPtr,
                                       uint64_t count, uint32_t prev) {
@@ -85,40 +85,40 @@ const uint8_t *svb_decode_avx_d1_init(uint32_t *out,
       if (!keys) { // 32 1-byte ints in a row
 
         Data = _mm_cvtepu8_epi16(_mm_lddqu_si128((__m128i *)(dataPtr)));
-        Prev = _write_16bit_avx_d1(out, Data, Prev);
+        Prev = _write_16bit_sse41_d1(out, Data, Prev);
         Data = _mm_cvtepu8_epi16(_mm_lddqu_si128((__m128i *)(dataPtr + 8)));
-        Prev = _write_16bit_avx_d1(out + 8, Data, Prev);
+        Prev = _write_16bit_sse41_d1(out + 8, Data, Prev);
         Data = _mm_cvtepu8_epi16(_mm_lddqu_si128((__m128i *)(dataPtr + 16)));
-        Prev = _write_16bit_avx_d1(out + 16, Data, Prev);
+        Prev = _write_16bit_sse41_d1(out + 16, Data, Prev);
         Data = _mm_cvtepu8_epi16(_mm_lddqu_si128((__m128i *)(dataPtr + 24)));
-        Prev = _write_16bit_avx_d1(out + 24, Data, Prev);
+        Prev = _write_16bit_sse41_d1(out + 24, Data, Prev);
         out += 32;
         dataPtr += 32;
         continue;
       }
 
-      Data = _decode_avx(keys & 0x00FF, &dataPtr);
-      Prev = _write_avx_d1(out, Data, Prev);
-      Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
-      Prev = _write_avx_d1(out + 4, Data, Prev);
+      Data = _decode_sse41(keys & 0x00FF, &dataPtr);
+      Prev = _write_sse41_d1(out, Data, Prev);
+      Data = _decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
+      Prev = _write_sse41_d1(out + 4, Data, Prev);
 
       keys >>= 16;
-      Data = _decode_avx((keys & 0x00FF), &dataPtr);
-      Prev = _write_avx_d1(out + 8, Data, Prev);
-      Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
-      Prev = _write_avx_d1(out + 12, Data, Prev);
+      Data = _decode_sse41((keys & 0x00FF), &dataPtr);
+      Prev = _write_sse41_d1(out + 8, Data, Prev);
+      Data = _decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
+      Prev = _write_sse41_d1(out + 12, Data, Prev);
 
       keys >>= 16;
-      Data = _decode_avx((keys & 0x00FF), &dataPtr);
-      Prev = _write_avx_d1(out + 16, Data, Prev);
-      Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
-      Prev = _write_avx_d1(out + 20, Data, Prev);
+      Data = _decode_sse41((keys & 0x00FF), &dataPtr);
+      Prev = _write_sse41_d1(out + 16, Data, Prev);
+      Data = _decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
+      Prev = _write_sse41_d1(out + 20, Data, Prev);
 
       keys >>= 16;
-      Data = _decode_avx((keys & 0x00FF), &dataPtr);
-      Prev = _write_avx_d1(out + 24, Data, Prev);
-      Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
-      Prev = _write_avx_d1(out + 28, Data, Prev);
+      Data = _decode_sse41((keys & 0x00FF), &dataPtr);
+      Prev = _write_sse41_d1(out + 24, Data, Prev);
+      Data = _decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
+      Prev = _write_sse41_d1(out + 28, Data, Prev);
 
       out += 32;
     }
@@ -127,40 +127,40 @@ const uint8_t *svb_decode_avx_d1_init(uint32_t *out,
       // faster 16-bit delta since we only have 8-bit values
       if (!keys) { // 32 1-byte ints in a row
         Data = _mm_cvtepu8_epi16(_mm_lddqu_si128((__m128i *)(dataPtr)));
-        Prev = _write_16bit_avx_d1(out, Data, Prev);
+        Prev = _write_16bit_sse41_d1(out, Data, Prev);
         Data = _mm_cvtepu8_epi16(_mm_lddqu_si128((__m128i *)(dataPtr + 8)));
-        Prev = _write_16bit_avx_d1(out + 8, Data, Prev);
+        Prev = _write_16bit_sse41_d1(out + 8, Data, Prev);
         Data = _mm_cvtepu8_epi16(_mm_lddqu_si128((__m128i *)(dataPtr + 16)));
-        Prev = _write_16bit_avx_d1(out + 16, Data, Prev);
+        Prev = _write_16bit_sse41_d1(out + 16, Data, Prev);
         Data = _mm_cvtepu8_epi16(_mm_loadl_epi64((__m128i *)(dataPtr + 24)));
-        Prev = _write_16bit_avx_d1(out + 24, Data, Prev);
+        Prev = _write_16bit_sse41_d1(out + 24, Data, Prev);
         out += 32;
         dataPtr += 32;
 
       } else {
 
-        Data = _decode_avx(keys & 0x00FF, &dataPtr);
-        Prev = _write_avx_d1(out, Data, Prev);
-        Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
-        Prev = _write_avx_d1(out + 4, Data, Prev);
+        Data = _decode_sse41(keys & 0x00FF, &dataPtr);
+        Prev = _write_sse41_d1(out, Data, Prev);
+        Data = _decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
+        Prev = _write_sse41_d1(out + 4, Data, Prev);
 
         keys >>= 16;
-        Data = _decode_avx((keys & 0x00FF), &dataPtr);
-        Prev = _write_avx_d1(out + 8, Data, Prev);
-        Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
-        Prev = _write_avx_d1(out + 12, Data, Prev);
+        Data = _decode_sse41((keys & 0x00FF), &dataPtr);
+        Prev = _write_sse41_d1(out + 8, Data, Prev);
+        Data = _decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
+        Prev = _write_sse41_d1(out + 12, Data, Prev);
 
         keys >>= 16;
-        Data = _decode_avx((keys & 0x00FF), &dataPtr);
-        Prev = _write_avx_d1(out + 16, Data, Prev);
-        Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
-        Prev = _write_avx_d1(out + 20, Data, Prev);
+        Data = _decode_sse41((keys & 0x00FF), &dataPtr);
+        Prev = _write_sse41_d1(out + 16, Data, Prev);
+        Data = _decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
+        Prev = _write_sse41_d1(out + 20, Data, Prev);
 
         keys >>= 16;
-        Data = _decode_avx((keys & 0x00FF), &dataPtr);
-        Prev = _write_avx_d1(out + 24, Data, Prev);
-        Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
-        Prev = _write_avx_d1(out + 28, Data, Prev);
+        Data = _decode_sse41((keys & 0x00FF), &dataPtr);
+        Prev = _write_sse41_d1(out + 24, Data, Prev);
+        Data = _decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
+        Prev = _write_sse41_d1(out + 28, Data, Prev);
 
         out += 32;
       }

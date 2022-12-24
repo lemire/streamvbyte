@@ -61,8 +61,8 @@ static uint8_t *svb_encode_scalar_d1_init(const uint32_t *in,
 size_t streamvbyte_delta_encode(const uint32_t *in, uint32_t count, uint8_t *out,
                                 uint32_t prev) {
 #ifdef STREAMVBYTE_X64
-  if(streamvbyte_ssse3()) {
-    return streamvbyte_encode_SSSE3_d1_init(in,count,out,prev);
+  if(streamvbyte_sse41()) {
+    return streamvbyte_encode_SSE41_d1_init(in,count,out,prev);
   }
 #endif
   uint8_t *keyPtr = out;             // keys come immediately after 32-bit count

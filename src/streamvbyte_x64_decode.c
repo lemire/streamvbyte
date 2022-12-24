@@ -1,7 +1,7 @@
 #include "streamvbyte_isadetection.h"
 #ifdef STREAMVBYTE_X64
-STREAMVBYTE_TARGET_SSSE3
-static inline __m128i _decode_avx(uint32_t key,
+STREAMVBYTE_TARGET_SSE41
+static inline __m128i _decode_sse41(uint32_t key,
                                   const uint8_t *__restrict__ *dataPtrPtr) {
   uint8_t len;
   __m128i Data = _mm_loadu_si128((__m128i *)*dataPtrPtr);
@@ -21,16 +21,16 @@ static inline __m128i _decode_avx(uint32_t key,
 STREAMVBYTE_UNTARGET_REGION
 
 
-STREAMVBYTE_TARGET_SSSE3
-static inline void _write_avx(uint32_t *out, __m128i Vec) {
+STREAMVBYTE_TARGET_SSE41
+static inline void _write_sse41(uint32_t *out, __m128i Vec) {
   _mm_storeu_si128((__m128i *)out, Vec);
 }
 STREAMVBYTE_UNTARGET_REGION
 
 
 
-STREAMVBYTE_TARGET_SSSE3
-const uint8_t *svb_decode_avx_simple(uint32_t *out,
+STREAMVBYTE_TARGET_SSE41
+const uint8_t *svb_decode_sse41_simple(uint32_t *out,
                                      const uint8_t *__restrict__ keyPtr,
                                      const uint8_t *__restrict__ dataPtr,
                                      uint64_t count) {
@@ -48,56 +48,56 @@ const uint8_t *svb_decode_avx_simple(uint32_t *out,
       uint64_t keys = nextkeys;
       memcpy(&nextkeys, keyPtr64 + Offset + 1, sizeof(nextkeys));
 
-      Data = _decode_avx((keys & 0xFF), &dataPtr);
-      _write_avx(out, Data);
-      Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
-      _write_avx(out + 4, Data);
+      Data = _decode_sse41((keys & 0xFF), &dataPtr);
+      _write_sse41(out, Data);
+      Data = _decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
+      _write_sse41(out + 4, Data);
 
       keys >>= 16;
-      Data = _decode_avx((keys & 0xFF), &dataPtr);
-      _write_avx(out + 8, Data);
-      Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
-      _write_avx(out + 12, Data);
+      Data = _decode_sse41((keys & 0xFF), &dataPtr);
+      _write_sse41(out + 8, Data);
+      Data = _decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
+      _write_sse41(out + 12, Data);
 
       keys >>= 16;
-      Data = _decode_avx((keys & 0xFF), &dataPtr);
-      _write_avx(out + 16, Data);
-      Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
-      _write_avx(out + 20, Data);
+      Data = _decode_sse41((keys & 0xFF), &dataPtr);
+      _write_sse41(out + 16, Data);
+      Data = _decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
+      _write_sse41(out + 20, Data);
 
       keys >>= 16;
-      Data = _decode_avx((keys & 0xFF), &dataPtr);
-      _write_avx(out + 24, Data);
-      Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
-      _write_avx(out + 28, Data);
+      Data = _decode_sse41((keys & 0xFF), &dataPtr);
+      _write_sse41(out + 24, Data);
+      Data = _decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
+      _write_sse41(out + 28, Data);
 
       out += 32;
     }
     {
       uint64_t keys = nextkeys;
 
-      Data = _decode_avx((keys & 0xFF), &dataPtr);
-      _write_avx(out, Data);
-      Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
-      _write_avx(out + 4, Data);
+      Data = _decode_sse41((keys & 0xFF), &dataPtr);
+      _write_sse41(out, Data);
+      Data = _decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
+      _write_sse41(out + 4, Data);
 
       keys >>= 16;
-      Data = _decode_avx((keys & 0xFF), &dataPtr);
-      _write_avx(out + 8, Data);
-      Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
-      _write_avx(out + 12, Data);
+      Data = _decode_sse41((keys & 0xFF), &dataPtr);
+      _write_sse41(out + 8, Data);
+      Data = _decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
+      _write_sse41(out + 12, Data);
 
       keys >>= 16;
-      Data = _decode_avx((keys & 0xFF), &dataPtr);
-      _write_avx(out + 16, Data);
-      Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
-      _write_avx(out + 20, Data);
+      Data = _decode_sse41((keys & 0xFF), &dataPtr);
+      _write_sse41(out + 16, Data);
+      Data = _decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
+      _write_sse41(out + 20, Data);
 
       keys >>= 16;
-      Data = _decode_avx((keys & 0xFF), &dataPtr);
-      _write_avx(out + 24, Data);
-      Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
-      _write_avx(out + 28, Data);
+      Data = _decode_sse41((keys & 0xFF), &dataPtr);
+      _write_sse41(out + 24, Data);
+      Data = _decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
+      _write_sse41(out + 28, Data);
 
       out += 32;
     }

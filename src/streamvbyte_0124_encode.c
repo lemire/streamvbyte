@@ -53,7 +53,7 @@ static uint8_t *svb_encode_scalar(const uint32_t *in,
 }
 
 #ifdef STREAMVBYTE_X64
-STREAMVBYTE_TARGET_SSSE3
+STREAMVBYTE_TARGET_SSE41
 static size_t streamvbyte_encode4(__m128i in, uint8_t *outData, uint8_t *outCode) {
   const __m128i Ones = _mm_set1_epi32(0x01010101);
   const __m128i GatherBits = _mm_set1_epi32(0x08040102);
@@ -80,7 +80,7 @@ static size_t streamvbyte_encode4(__m128i in, uint8_t *outData, uint8_t *outCode
 }
 STREAMVBYTE_UNTARGET_REGION
 
-STREAMVBYTE_TARGET_SSSE3
+STREAMVBYTE_TARGET_SSE41
 static size_t streamvbyte_encode_quad(const uint32_t *in, uint8_t *outData, uint8_t *outKey) {
   __m128i vin = _mm_loadu_si128((__m128i *) in );
   return streamvbyte_encode4(vin, outData, outKey);
@@ -94,7 +94,7 @@ size_t streamvbyte_encode_0124(const uint32_t *in, uint32_t count, uint8_t *out)
   uint32_t keyLen = (count + 3) / 4;  // 2-bits rounded to full byte
   uint8_t *dataPtr = keyPtr + keyLen; // variable byte data after all keys
 #ifdef STREAMVBYTE_X64
-  if(streamvbyte_ssse3()) {
+  if(streamvbyte_sse41()) {
     uint32_t count_quads = count / 4;
     count -= 4 * count_quads;
     for (uint32_t c = 0; c < count_quads; c++) {

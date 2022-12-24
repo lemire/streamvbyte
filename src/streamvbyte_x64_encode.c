@@ -1,8 +1,8 @@
 #include "streamvbyte_isadetection.h"
 #ifdef STREAMVBYTE_X64
-// contributed by aqrit 
-STREAMVBYTE_TARGET_SSSE3
-size_t streamvbyte_encode_SSSE3 (const uint32_t* in, uint32_t count, uint8_t* out) {
+// contributed by aqrit
+STREAMVBYTE_TARGET_SSE41
+size_t streamvbyte_encode_SSE41 (const uint32_t* in, uint32_t count, uint8_t* out) {
 	uint32_t keyLen = (count >> 2) + (((count & 3) + 3) >> 2); // 2-bits per each rounded up to byte boundry
 	uint8_t *restrict keyPtr = &out[0];
 	uint8_t *restrict dataPtr = &out[keyLen]; // variable length data after keys

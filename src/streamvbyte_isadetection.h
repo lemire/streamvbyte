@@ -80,6 +80,7 @@ enum streamvbyte_instruction_set {
   streamvbyte_BMI1 = 0x20,
   streamvbyte_BMI2 = 0x40,
   streamvbyte_ALTIVEC = 0x80,
+  streamvbyte_SSE41 = 0x100,
   streamvbyte_UNINITIALIZED = 0x8000
 };
 
@@ -141,6 +142,7 @@ static inline uint32_t dynamic_streamvbyte_detect_supported_architectures() {
   static uint32_t cpuid_avx2_bit = 1 << 5;      ///< @private Bit 5 of EBX for EAX=0x7
   static uint32_t cpuid_bmi1_bit = 1 << 3;      ///< @private bit 3 of EBX for EAX=0x7
   static uint32_t cpuid_bmi2_bit = 1 << 8;      ///< @private bit 8 of EBX for EAX=0x7
+  static uint32_t cpuid_sse41_bit = 1 << 19;    ///< @private bit 20 of ECX for EAX=0x1
   static uint32_t cpuid_sse42_bit = 1 << 20;    ///< @private bit 20 of ECX for EAX=0x1
   static uint32_t cpuid_pclmulqdq_bit = 1 << 1; ///< @private bit  1 of ECX for EAX=0x1
   // ECX for EAX=0x7
@@ -167,7 +169,9 @@ static inline uint32_t dynamic_streamvbyte_detect_supported_architectures() {
   if (ecx & cpuid_sse42_bit) {
     host_isa |= streamvbyte_SSE42;
   }
-
+  if (ecx & cpuid_sse41_bit) {
+    host_isa |= streamvbyte_SSE41;
+  }
   if (ecx & cpuid_pclmulqdq_bit) {
     host_isa |= streamvbyte_PCLMULQDQ;
   }
@@ -224,20 +228,20 @@ static inline uint32_t streamvbyte_detect_supported_architectures() {
 #endif // defined(_MSC_VER) && !defined(__clang__)
 
 
-#if defined(__AVX__)
-static inline bool streamvbyte_ssse3() {
+#if defined(__sse41__)
+static inline bool streamvbyte_sse41() {
   return true;
 }
 #else
-static inline bool streamvbyte_ssse3() {
-  return  (streamvbyte_detect_supported_architectures() & streamvbyte_SSSE3) == streamvbyte_SSSE3;
+static inline bool streamvbyte_sse41() {
+  return  (streamvbyte_detect_supported_architectures() & streamvbyte_SSE41) == streamvbyte_SSE41;
 }
 #endif
 
 
 #else // defined(__x86_64__) || defined(_M_AMD64) // x64
 
-static inline bool streamvbyte_ssse3() {
+static inline bool streamvbyte_sse41() {
   return false;
 }
 
@@ -281,11 +285,11 @@ static inline uint32_t streamvbyte_detect_supported_architectures() {
 #define STREAMVBYTE_UNTARGET_REGION
 #endif
 
-#define STREAMVBYTE_TARGET_SSSE3 STREAMVBYTE_TARGET_REGION("avx2")
+#define STREAMVBYTE_TARGET_SSE41 STREAMVBYTE_TARGET_REGION("sse4.1")
 
-#ifdef __AVX___
-#undef STREAMVBYTE_TARGET_SSSE3
-#define STREAMVBYTE_TARGET_SSSE3
+#ifdef __sse41___
+#undef STREAMVBYTE_TARGET_SSE41
+#define STREAMVBYTE_TARGET_SSE41
 #endif
 
 #endif // STREAMVBYTE_IS_X64

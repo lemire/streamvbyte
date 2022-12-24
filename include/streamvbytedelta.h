@@ -23,8 +23,8 @@ size_t streamvbyte_delta_encode(const uint32_t *in, uint32_t length, uint8_t *ou
 
 // Read "length" 32-bit integers in StreamVByte format from in, storing the result in out.
 // Returns the number of bytes read.  We may read up to STREAMVBYTE_PADDING extra bytes
-// from the input buffer (these bytes are read but never used). 
-// The caller is responsible for knowing how many integers ("length") are to be read: 
+// from the input buffer (these bytes are read but never used).
+// The caller is responsible for knowing how many integers ("length") are to be read:
 // this information ought to be stored somehow.
 // There is no alignment requirement on the "in" pointer.
 // The out pointer should point to length * sizeof(uint32_t) bytes.

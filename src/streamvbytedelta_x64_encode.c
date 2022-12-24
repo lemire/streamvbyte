@@ -4,15 +4,15 @@
 
 #ifdef STREAMVBYTE_X64
 
-STREAMVBYTE_TARGET_SSSE3
+STREAMVBYTE_TARGET_SSE41
 static __m128i Delta(__m128i curr, __m128i prev) {
   return _mm_sub_epi32(curr, _mm_alignr_epi8(curr, prev, 12));
 }
 STREAMVBYTE_UNTARGET_REGION
 
-// based on code by aqrit  (streamvbyte_encode_SSSE3) 
-STREAMVBYTE_TARGET_SSSE3
-size_t streamvbyte_encode_SSSE3_d1_init (const uint32_t* in, uint32_t count, uint8_t* out, uint32_t prev) {
+// based on code by aqrit  (streamvbyte_encode_SSE41)
+STREAMVBYTE_TARGET_SSE41
+size_t streamvbyte_encode_SSE41_d1_init (const uint32_t* in, uint32_t count, uint8_t* out, uint32_t prev) {
   __m128i Prev = _mm_set1_epi32(prev);
 	uint32_t keyLen = (count >> 2) + (((count & 3) + 3) >> 2); // 2-bits per each rounded up to byte boundry
 	uint8_t *restrict keyPtr = &out[0];

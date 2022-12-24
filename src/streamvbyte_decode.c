@@ -68,8 +68,8 @@ size_t streamvbyte_decode(const uint8_t *in, uint32_t *out, uint32_t count) {
   const uint8_t *dataPtr = keyPtr + keyLen; // data starts at end of keys
 
 #ifdef STREAMVBYTE_X64
-  if(streamvbyte_ssse3()) {
-    dataPtr = svb_decode_avx_simple(out, keyPtr, dataPtr, count);
+  if(streamvbyte_sse41()) {
+    dataPtr = svb_decode_sse41_simple(out, keyPtr, dataPtr, count);
     out += count & ~ 31;
     keyPtr += (count/4) & ~ 7;
     count &= 31;

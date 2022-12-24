@@ -2770,7 +2770,7 @@ int main() {
            "little endian systems.\n");
   }
 #ifdef STREAMVBYTE_X64
-  if(streamvbyte_ssse3()) {
+  if(streamvbyte_sse41()) {
     printf("Code was vectorized (x64).\n");
   } else {
     printf("Code was not vectorized (x64).\n");

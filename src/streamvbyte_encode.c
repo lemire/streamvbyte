@@ -69,8 +69,8 @@ static uint8_t *svb_encode_scalar(const uint32_t *in,
 // Returns the number of bytes written.
 size_t streamvbyte_encode(const uint32_t *in, uint32_t count, uint8_t *out) {
 #ifdef STREAMVBYTE_X64
-  if(streamvbyte_ssse3()) {
-    return streamvbyte_encode_SSSE3(in,count,out);
+  if(streamvbyte_sse41()) {
+    return streamvbyte_encode_SSE41(in,count,out);
   }
 #endif
   uint8_t *keyPtr = out;
