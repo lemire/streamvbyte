@@ -40,12 +40,8 @@ STREAMVBYTE_UNTARGET_REGION
 STREAMVBYTE_TARGET_SSE41
 static inline __m128i _write_16bit_sse41_d1(uint32_t *out, __m128i Vec,
                                           __m128i Prev) {
-#ifndef _MSC_VER
-  __m128i High16To32 = {0xFFFF0B0AFFFF0908, 0xFFFF0F0EFFFF0D0C};
-#else
-  __m128i High16To32 = {8,  9,  -1, -1, 10, 11, -1, -1,
-                        12, 13, -1, -1, 14, 15, -1, -1};
-#endif
+  __m128i High16To32 = _mm_set_epi64x(0xFFFF0F0EFFFF0D0CLL,
+                                      0xFFFF0B0AFFFF0908LL);
   // vec == [A B C D E F G H] (16 bit values)
   __m128i Add = _mm_slli_si128(Vec, 2);             // [- A B C D E F G]
   Prev = _mm_shuffle_epi32(Prev, BroadcastLastXMM); // [P P P P] (32-bit)
