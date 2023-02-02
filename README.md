@@ -56,7 +56,7 @@ ctest -V
 
 ```
 
-See example.c for an example.
+See `examples/example.c` for an example.
 
 Short code sample:
 ```C

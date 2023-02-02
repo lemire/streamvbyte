@@ -111,7 +111,7 @@ message(STATUS "CMAKE_C_FLAGS_RELEASE: " ${CMAKE_C_FLAGS_RELEASE})
 # example
 option(STREAMVBYTE_ENABLE_EXAMPLES "Enable examples for streamvbyte" OFF)
 if(STREAMVBYTE_ENABLE_EXAMPLES)
-    add_executable(example ${PROJECT_SOURCE_DIR}/example.c)
+    add_executable(example ${PROJECT_SOURCE_DIR}/examples/example.c)
     target_link_libraries(example streamvbyte_static)
 endif()
 
