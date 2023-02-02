@@ -109,25 +109,31 @@ message(STATUS "CMAKE_C_FLAGS_RELEASE: " ${CMAKE_C_FLAGS_RELEASE})
 # build programs
 
 # example
-add_executable(example ${PROJECT_SOURCE_DIR}/example.c)
-target_link_libraries(example streamvbyte_static)
-
-if(NOT MSVC)
-    # perf
-    add_executable(perf ${PROJECT_SOURCE_DIR}/tests/perf.c)
-    target_link_libraries(perf streamvbyte_static)
-    target_link_libraries(perf m)
+option(STREAMVBYTE_ENABLE_EXAMPLES "Enable examples for streamvbyte" OFF)
+if(STREAMVBYTE_ENABLE_EXAMPLES)
+    add_executable(example ${PROJECT_SOURCE_DIR}/examples/example.c)
+    target_link_libraries(example streamvbyte_static)
 endif()
-# writeseq
-add_executable(writeseq ${PROJECT_SOURCE_DIR}/tests/writeseq.c)
-target_link_libraries(writeseq streamvbyte_static)
-# unit
-add_executable(unit ${PROJECT_SOURCE_DIR}/tests/unit.c)
-target_link_libraries(unit streamvbyte_static)
 
-option(STREAMVBYTE_ENABLE_TESTS "enable unit tests for streamvbyte" ON)
+option(STREAMVBYTE_ENABLE_TESTS "Enable unit tests for streamvbyte" OFF)
 if(STREAMVBYTE_ENABLE_TESTS)
+    if(NOT MSVC)
+        # perf
+        add_executable(perf ${PROJECT_SOURCE_DIR}/tests/perf.c)
+        target_link_libraries(perf streamvbyte_static)
+        target_link_libraries(perf m)
+    endif()
+
+    # writeseq
+    add_executable(writeseq ${PROJECT_SOURCE_DIR}/tests/writeseq.c)
+    target_link_libraries(writeseq streamvbyte_static)
+
+    # unit
+    add_executable(unit ${PROJECT_SOURCE_DIR}/tests/unit.c)
+    target_link_libraries(unit streamvbyte_static)
+
     enable_testing()
+
     # add unit tests
     add_test(NAME unit COMMAND unit)
     add_custom_target(check COMMAND ctest --output-on-failure DEPENDS unit)

@@ -76,8 +76,8 @@ shuffle_tables: ./utils/shuffle_tables.c
 
 
 
-example: ./example.c    $(HEADERS) $(OBJECTS)
-	$(CC) $(CFLAGS) -o example ./example.c -Iinclude  $(OBJECTS)
+example: ./examples/example.c    $(HEADERS) $(OBJECTS)
+	$(CC) $(CFLAGS) -o example ./examples/example.c -Iinclude  $(OBJECTS)
 
 perf: ./tests/perf.c    $(HEADERS) $(OBJECTS)
 	$(CC) $(CFLAGS) -o perf ./tests/perf.c -Iinclude  $(OBJECTS) -lm

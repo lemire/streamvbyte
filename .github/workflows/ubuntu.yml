@@ -20,14 +20,14 @@ jobs:
         run: |
           mkdir builddebug &&
           cd builddebug &&
-          cmake -DCMAKE_BUILD_TYPE=buildundefsani ..  &&
+          cmake .. -DCMAKE_BUILD_TYPE=buildundefsani -DSTREAMVBYTE_ENABLE_EXAMPLES=ON -DSTREAMVBYTE_ENABLE_TESTS=ON &&
           cmake --build .   &&
           ctest --output-on-failure
       - name: Use cmake (release)
         run: |
           mkdir buildrelease &&
           cd buildrelease &&
-          cmake -DCMAKE_BUILD_TYPE=Release ..  &&
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DSTREAMVBYTE_ENABLE_EXAMPLES=ON -DSTREAMVBYTE_ENABLE_TESTS=ON &&
           cmake --build .   &&
           ctest --output-on-failure
 
@@ -35,6 +35,6 @@ jobs:
         run: |
           mkdir buildundefsani &&
           cd buildundefsani &&
-          cmake -DSTREAMVBYTE_SANITIZE_UNDEFINED=ON -DCMAKE_BUILD_TYPE=buildundefsani ..  &&
+          cmake .. -DSTREAMVBYTE_SANITIZE_UNDEFINED=ON -DCMAKE_BUILD_TYPE=buildundefsani -DSTREAMVBYTE_ENABLE_EXAMPLES=ON -DSTREAMVBYTE_ENABLE_TESTS=ON &&
           cmake --build .   &&
           ctest --output-on-failure
