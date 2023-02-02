@@ -49,6 +49,8 @@ mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release \
          -DCMAKE_INSTALL_PREFIX:PATH=/path/to/install \
+	 -DSTREAMVBYTE_ENABLE_EXAMPLES=ON \
+	 -DSTREAMVBYTE_ENABLE_TESTS=ON
 make install
 
 # run the tests like:
