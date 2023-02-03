@@ -19,16 +19,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {gen: Visual Studio 17 2022, arch: Win32, static: ON}
-          - {gen: Visual Studio 17 2022, arch: Win32, static: OFF}
-          - {gen: Visual Studio 17 2022, arch: x64, static: ON}
-          - {gen: Visual Studio 17 2022, arch: x64, static: OFF}
+          - {gen: Visual Studio 17 2022, mode: , arch: Win32, static: ON}
+          - {gen: Visual Studio 17 2022, mode: , arch: Win32, static: OFF}
+          - {gen: Visual Studio 17 2022, mode: , arch: x64, static: ON}
+          - {gen: Visual Studio 17 2022, mode: , arch: x64, static: OFF}
+          - {gen: Visual Studio 17 2022, mode: -T ClangCL, arch: Win32, static: ON}
+          - {gen: Visual Studio 17 2022, mode: -T ClangCL, arch: Win32, static: OFF}
+          - {gen: Visual Studio 17 2022, mode: -T ClangCL, arch: x64, static: ON}
+          - {gen: Visual Studio 17 2022, mode: -T ClangCL, arch: x64, static: OFF}
     steps:
     - name: checkout
       uses: actions/checkout@v2
     - name: Configure
       run: |
-        cmake -G "${{matrix.gen}}" -A ${{matrix.arch}} -DSIMDJSON_DEVELOPER_MODE=ON -DSIMDJSON_COMPETITION=OFF -DSIMDJSON_BUILD_STATIC=${{matrix.static}} -DSTREAMVBYTE_ENABLE_EXAMPLES=ON -DSTREAMVBYTE_ENABLE_TESTS=ON -B build
+        cmake -G "${{matrix.gen}}" -A ${{matrix.arch}} "${{matrix.mode}}" -DSIMDJSON_DEVELOPER_MODE=ON -DSIMDJSON_COMPETITION=OFF -DSIMDJSON_BUILD_STATIC=${{matrix.static}} -DSTREAMVBYTE_ENABLE_EXAMPLES=ON -DSTREAMVBYTE_ENABLE_TESTS=ON -B build
     - name: Build Debug
       run: cmake --build build --config Debug --verbose
     - name: Build Release
