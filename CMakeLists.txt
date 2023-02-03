@@ -7,6 +7,7 @@ set(STREAMVBYTE_LIB_SOVERSION "1" CACHE STRING "streamvbyte library soversion")
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
+
 option(STREAMVBYTE_SANITIZE "Sanitize addresses" OFF)
 if(NOT CMAKE_BUILD_TYPE)
     message(STATUS "No build type selected")
@@ -38,10 +39,12 @@ endif()
 if(MSVC)
     add_definitions("-D__restrict__=__restrict")
 endif()
+
 # test for arm
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64.*|AARCH64.*)")
     set(BASE_FLAGS ${BASE_FLAGS} "-D__ARM_NEON__")
 endif()
+
 set(STREAMVBYTE_SRCS
     ${PROJECT_SOURCE_DIR}/src/streamvbyte_encode.c
     ${PROJECT_SOURCE_DIR}/src/streamvbyte_decode.c
@@ -51,10 +54,10 @@ set(STREAMVBYTE_SRCS
     ${PROJECT_SOURCE_DIR}/src/streamvbyte_0124_encode.c
     ${PROJECT_SOURCE_DIR}/src/streamvbyte_0124_decode.c
 )
+
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-add_library(streamvbyte_static STATIC "${STREAMVBYTE_SRCS}")
-target_link_libraries(streamvbyte_static ${BASE_FLAGS})
-add_library(streamvbyte SHARED "${STREAMVBYTE_SRCS}")
+
+add_library(streamvbyte "${STREAMVBYTE_SRCS}")
 target_link_libraries(streamvbyte ${BASE_FLAGS})
 
 set_target_properties(
@@ -64,13 +67,6 @@ set_target_properties(
         SOVERSION "${STREAMVBYTE_LIB_SOVERSION}"
         WINDOWS_EXPORT_ALL_SYMBOLS YES
 )
-set_target_properties(
-    streamvbyte_static
-    PROPERTIES
-        VERSION "${STREAMVBYTE_LIB_VERSION}"
-        SOVERSION "${STREAMVBYTE_LIB_SOVERSION}"
-        WINDOWS_EXPORT_ALL_SYMBOLS YES
-)
 
 target_include_directories(
     streamvbyte
@@ -78,12 +74,7 @@ target_include_directories(
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/include>
 )
-target_include_directories(
-    streamvbyte_static
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/include>
-)
+
 install(
     FILES
         ${PROJECT_SOURCE_DIR}/include/streamvbyte.h
@@ -91,7 +82,7 @@ install(
         ${PROJECT_SOURCE_DIR}/include/streamvbyte_zigzag.h
     DESTINATION include
 )
-install(TARGETS streamvbyte streamvbyte_static DESTINATION lib)
+install(TARGETS streamvbyte DESTINATION lib)
 
 option(STREAMVBYTE_SANITIZE_UNDEFINED "Sanitize undefined behavior" OFF)
 if(STREAMVBYTE_SANITIZE_UNDEFINED)
@@ -112,7 +103,7 @@ message(STATUS "CMAKE_C_FLAGS_RELEASE: " ${CMAKE_C_FLAGS_RELEASE})
 option(STREAMVBYTE_ENABLE_EXAMPLES "Enable examples for streamvbyte" OFF)
 if(STREAMVBYTE_ENABLE_EXAMPLES)
     add_executable(example ${PROJECT_SOURCE_DIR}/examples/example.c)
-    target_link_libraries(example streamvbyte_static)
+    target_link_libraries(example streamvbyte)
 endif()
 
 option(STREAMVBYTE_ENABLE_TESTS "Enable unit tests for streamvbyte" OFF)
@@ -120,17 +111,17 @@ if(STREAMVBYTE_ENABLE_TESTS)
     if(NOT MSVC)
         # perf
         add_executable(perf ${PROJECT_SOURCE_DIR}/tests/perf.c)
-        target_link_libraries(perf streamvbyte_static)
+        target_link_libraries(perf streamvbyte)
         target_link_libraries(perf m)
     endif()
 
     # writeseq
     add_executable(writeseq ${PROJECT_SOURCE_DIR}/tests/writeseq.c)
-    target_link_libraries(writeseq streamvbyte_static)
+    target_link_libraries(writeseq streamvbyte)
 
     # unit
     add_executable(unit ${PROJECT_SOURCE_DIR}/tests/unit.c)
-    target_link_libraries(unit streamvbyte_static)
+    target_link_libraries(unit streamvbyte)
 
     enable_testing()
 
