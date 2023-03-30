@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.3)
+
 set(CMAKE_MACOSX_RPATH OFF)
 project(STREAMVBYTE VERSION "1.0.0")
 
@@ -9,6 +10,7 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 option(STREAMVBYTE_SANITIZE "Sanitize addresses" OFF)
+
 if(NOT CMAKE_BUILD_TYPE)
     message(STATUS "No build type selected")
     if(STREAMVBYTE_SANITIZE)
