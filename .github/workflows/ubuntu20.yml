@@ -1,0 +1,48 @@
+name: Ubuntu 20.04 CI (GCC 9.4 and 10, LLVM 10 and 11)
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  ubuntu-build:
+    if: >-
+      ! contains(toJSON(github.event.commits.*.message), '[skip ci]') &&
+      ! contains(toJSON(github.event.commits.*.message), '[skip github]')
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {compiler: gcc}
+          - {compiler: gcc-10}
+          - {compiler: clang}
+          - {compiler: clang-11}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use cmake (debug)
+        run: |
+          mkdir builddebug &&
+          cd builddebug &&
+          cmake .. -DCMAKE_BUILD_TYPE=buildundefsani -DSTREAMVBYTE_ENABLE_EXAMPLES=ON -DSTREAMVBYTE_ENABLE_TESTS=ON -DCMAKE_C_COMPILER=${{matrix.compiler}} &&
+          cmake --build .   &&
+          ctest --output-on-failure
+      - name: Use cmake (release)
+        run: |
+          mkdir buildrelease &&
+          cd buildrelease &&
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DSTREAMVBYTE_ENABLE_EXAMPLES=ON -DSTREAMVBYTE_ENABLE_TESTS=ON &&
+          cmake --build .   &&
+          ctest --output-on-failure
+
+      - name: Use cmake (undefined sanitizer)
+        run: |
+          mkdir buildundefsani &&
+          cd buildundefsani &&
+          cmake .. -DSTREAMVBYTE_SANITIZE_UNDEFINED=ON -DCMAKE_BUILD_TYPE=buildundefsani -DSTREAMVBYTE_ENABLE_EXAMPLES=ON -DSTREAMVBYTE_ENABLE_TESTS=ON &&
+          cmake --build .   &&
+          ctest --output-on-failure
