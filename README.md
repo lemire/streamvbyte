@@ -1,7 +1,10 @@
 streamvbyte
 ===========
-[![Ubuntu 20.04 CI (GCC 9)](https://github.com/lemire/streamvbyte/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/lemire/streamvbyte/actions/workflows/ubuntu.yml)
-[![VS16-CI](https://github.com/lemire/streamvbyte/actions/workflows/vs.yml/badge.svg)](https://github.com/lemire/streamvbyte/actions/workflows/vs.yml)
+[![Ubuntu 22.04 CI (GCC 9, 10, 11 and 12, LLVM 12, 13, 14)](https://github.com/lemire/streamvbyte/actions/workflows/ubuntu22.yml/badge.svg)](https://github.com/lemire/streamvbyte/actions/workflows/ubuntu22.yml)
+[![Ubuntu 20.04 CI (GCC 9.4 and 10, LLVM 10 and 11)](https://github.com/lemire/streamvbyte/actions/workflows/ubuntu20.yml/badge.svg)](https://github.com/lemire/streamvbyte/actions/workflows/ubuntu20.yml)
+[![macOS 11 CI (LLVM 13, GCC 10, 11, 12)](https://github.com/lemire/streamvbyte/actions/workflows/macos.yml/badge.svg)](https://github.com/lemire/streamvbyte/actions/workflows/macos.yml)
+[![VS16-CI](https://github.com/lemire/streamvbyte/actions/workflows/vs16.yml/badge.svg)](https://github.com/lemire/streamvbyte/actions/workflows/vs16.yml)
+[![VS17-CI](https://github.com/lemire/streamvbyte/actions/workflows/vs.yml/badge.svg)](https://github.com/lemire/streamvbyte/actions/workflows/vs.yml)
 
 StreamVByte is a new integer compression technique that applies SIMD instructions (vectorization) to
 Google's Group Varint approach. The net result is faster than other byte-oriented compression
