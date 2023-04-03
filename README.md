@@ -17,6 +17,12 @@ It assumes a recent Intel processor (most Intel and AMD processors released afte
 The code should build using most standard-compliant C99 compilers. The provided makefile
 expects a Linux-like system. We have a CMake build.
 
+# Requirements
+
+* A C99 compatible compiler (GCC 9 and up, LLVM 10 and up, Visual Studio 2019 and up).
+* We support macOS, Linux and Windows. It should be easy to extend support to FreeBSD and other POSIX systems.
+
+For high performance, you should have either a 64-bit ARM processor or a 64-bit x64 system with SSE 4.1 support. SSE 4.1 was added to Intel processors in 2007 so it is almost certain that your Intel or AMD processor supports it.
 
 # Users
 
