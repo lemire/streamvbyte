@@ -67,11 +67,9 @@ static size_t svb_data_bytes_scalar(const uint32_t* in, uint32_t length) {
    size_t db = 0;
    for (uint32_t c = 0; c < length; c++) {
       uint32_t val = in[c];
- 
-      if (val < (1 << 8)) db += 1;
-      else if (val < (1 << 16)) db += 2;
-      else if (val < (1 << 24)) db += 3;
-      else db += 4;
+      
+      uint32_t bytes = 1 + (val > 0x000000FF) + (val > 0x0000FFFF) + (val > 0x00FFFFFF);
+      db += bytes;
    }
    return db;
 }
@@ -81,10 +79,8 @@ static size_t svb_data_bytes_0124_scalar(const uint32_t* in, uint32_t length) {
    for (uint32_t c = 0; c < length; c++) {
       uint32_t val = in[c];
 
-      if (val == 0) db += 0;
-      else if (val < (1 << 8)) db += 1;
-      else if (val < (1 << 16)) db += 2;
-      else db += 4;
+      uint32_t bytes = (val > 0x00000000) + (val > 0x000000FF) + (val > 0x0000FFFF) * 2;
+      db += bytes;
    }
    return db;
 }
