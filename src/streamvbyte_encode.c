@@ -89,6 +89,11 @@ size_t streamvbyte_compressedbytes(const uint32_t* in, uint32_t length) {
    // number of control bytes:
    size_t cb = (length + 3) / 4;
 
+#ifdef STREAMVBYTE_X64
+   if (streamvbyte_sse41()) {
+      return cb + svb_data_bytes_SSE41(in, length);
+   }
+#endif
    return cb + svb_data_bytes_scalar(in, length);
 }
 

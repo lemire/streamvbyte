@@ -2,6 +2,8 @@
 #ifdef STREAMVBYTE_X64
 // contributed by aqrit
 
+static size_t svb_data_bytes_scalar(const uint32_t* in, uint32_t length);
+
 STREAMVBYTE_TARGET_SSE41
 static inline size_t svb_control_SSE41 (__m128i lo, __m128i hi) {
     const __m128i mask_01 = _mm_set1_epi8(0x01);
@@ -17,6 +19,28 @@ static inline size_t svb_control_SSE41 (__m128i lo, __m128i hi) {
     m0 = _mm_adds_epu16(m0, mask_7F00); // convert: 0x0101 to 0x8001, 0xFF01 to 0xFFFF
     keys = (size_t)_mm_movemask_epi8(m0);
     return keys;
+}
+STREAMVBYTE_UNTARGET_REGION
+
+STREAMVBYTE_TARGET_SSE41
+size_t svb_data_bytes_SSE41 (const uint32_t* in, uint32_t count) {
+    size_t dataLen = 0;
+
+    for (const uint32_t* end = &in[(count & ~7)]; in != end; in += 8)
+    {
+        __m128i r0, r1;
+        size_t keys;
+
+        r0 = _mm_loadu_si128((__m128i *) &in[0]);
+        r1 = _mm_loadu_si128((__m128i *) &in[4]);
+
+        keys = svb_control_SSE41(r0, r1);
+        dataLen += len_lut[keys & 0xFF];
+        dataLen += len_lut[keys >> 8];
+    }
+
+    dataLen += svb_data_bytes_scalar(in, count & 7);
+    return dataLen;
 }
 STREAMVBYTE_UNTARGET_REGION
 
