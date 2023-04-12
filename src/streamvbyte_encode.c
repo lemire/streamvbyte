@@ -63,6 +63,46 @@ static uint8_t *svb_encode_scalar(const uint32_t *in,
 #include "streamvbyte_arm_encode.c"
 #endif
 
+static size_t svb_data_bytes_scalar(const uint32_t* in, uint32_t length) {
+   size_t db = 0;
+   for (uint32_t c = 0; c < length; c++) {
+      uint32_t val = in[c];
+      
+      uint32_t bytes = 1 + (val > 0x000000FF) + (val > 0x0000FFFF) + (val > 0x00FFFFFF);
+      db += bytes;
+   }
+   return db;
+}
+
+static size_t svb_data_bytes_0124_scalar(const uint32_t* in, uint32_t length) {
+   size_t db = 0;
+   for (uint32_t c = 0; c < length; c++) {
+      uint32_t val = in[c];
+
+      uint32_t bytes = (val > 0x00000000) + (val > 0x000000FF) + (val > 0x0000FFFF) * 2;
+      db += bytes;
+   }
+   return db;
+}
+
+size_t streamvbyte_compressedbytes(const uint32_t* in, uint32_t length) {
+   // number of control bytes:
+   size_t cb = (length + 3) / 4;
+
+#ifdef STREAMVBYTE_X64
+   if (streamvbyte_sse41()) {
+      return cb + svb_data_bytes_SSE41(in, length);
+   }
+#endif
+   return cb + svb_data_bytes_scalar(in, length);
+}
+
+size_t streamvbyte_compressedbytes_0124(const uint32_t* in, uint32_t length) {
+   // number of control bytes:
+   size_t cb = (length + 3) / 4;
+
+   return cb + svb_data_bytes_0124_scalar(in, length);
+}
 
 
 // Encode an array of a given length read from in to bout in streamvbyte format.

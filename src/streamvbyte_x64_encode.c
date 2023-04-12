@@ -1,14 +1,54 @@
 #include "streamvbyte_isadetection.h"
 #ifdef STREAMVBYTE_X64
 // contributed by aqrit
+
+static size_t svb_data_bytes_scalar(const uint32_t* in, uint32_t length);
+
+STREAMVBYTE_TARGET_SSE41
+static inline size_t svb_control_SSE41 (__m128i lo, __m128i hi) {
+    const __m128i mask_01 = _mm_set1_epi8(0x01);
+    const __m128i mask_7F00 = _mm_set1_epi16(0x7F00);
+
+    __m128i m0, m1;
+    size_t keys;
+
+    m0 = _mm_min_epu8(mask_01, lo);
+    m1 = _mm_min_epu8(mask_01, hi);
+    m0 = _mm_packus_epi16(m0, m1);
+    m0 = _mm_min_epi16(m0, mask_01); // convert 0x01FF to 0x0101
+    m0 = _mm_adds_epu16(m0, mask_7F00); // convert: 0x0101 to 0x8001, 0xFF01 to 0xFFFF
+    keys = (size_t)_mm_movemask_epi8(m0);
+    return keys;
+}
+STREAMVBYTE_UNTARGET_REGION
+
+STREAMVBYTE_TARGET_SSE41
+size_t svb_data_bytes_SSE41 (const uint32_t* in, uint32_t count) {
+    size_t dataLen = 0;
+
+    for (const uint32_t* end = &in[(count & ~7)]; in != end; in += 8)
+    {
+        __m128i r0, r1;
+        size_t keys;
+
+        r0 = _mm_loadu_si128((__m128i *) &in[0]);
+        r1 = _mm_loadu_si128((__m128i *) &in[4]);
+
+        keys = svb_control_SSE41(r0, r1);
+        dataLen += len_lut[keys & 0xFF];
+        dataLen += len_lut[keys >> 8];
+    }
+
+    dataLen += svb_data_bytes_scalar(in, count & 7);
+    return dataLen;
+}
+STREAMVBYTE_UNTARGET_REGION
+
 STREAMVBYTE_TARGET_SSE41
 size_t streamvbyte_encode_SSE41 (const uint32_t* in, uint32_t count, uint8_t* out) {
 	uint32_t keyLen = (count >> 2) + (((count & 3) + 3) >> 2); // 2-bits per each rounded up to byte boundry
 	uint8_t *restrict keyPtr = &out[0];
 	uint8_t *restrict dataPtr = &out[keyLen]; // variable length data after keys
-
-	const __m128i mask_01 = _mm_set1_epi8(0x01);
-	const __m128i mask_7F00 = _mm_set1_epi16(0x7F00);
 
 	for (const uint32_t* end = &in[(count & ~7)]; in != end; in += 8)
 	{
@@ -18,12 +58,7 @@ size_t streamvbyte_encode_SSE41 (const uint32_t* in, uint32_t count, uint8_t* ou
 		r0 = _mm_loadu_si128((__m128i*)&in[0]);
 		r1 = _mm_loadu_si128((__m128i*)&in[4]);
 
-		r2 = _mm_min_epu8(mask_01, r0);
-		r3 = _mm_min_epu8(mask_01, r1);
-		r2 = _mm_packus_epi16(r2, r3);
-		r2 = _mm_min_epi16(r2, mask_01); // convert 0x01FF to 0x0101
-		r2 = _mm_adds_epu16(r2, mask_7F00); // convert: 0x0101 to 0x8001, 0xFF01 to 0xFFFF
-		keys = (size_t)_mm_movemask_epi8(r2);
+		keys = svb_control_SSE41(r0, r1);
 
 		r2 = _mm_loadu_si128((__m128i*)&shuf_lut[(keys << 4) & 0x03F0]);
 		r3 = _mm_loadu_si128((__m128i*)&shuf_lut[(keys >> 4) & 0x03F0]);
