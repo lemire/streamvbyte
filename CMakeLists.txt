@@ -1,16 +1,39 @@
 cmake_minimum_required(VERSION 3.3)
 
 set(CMAKE_MACOSX_RPATH OFF)
-project(STREAMVBYTE VERSION "1.0.0")
+project(streamvbyte VERSION "1.0.0")
 
 set(STREAMVBYTE_LIB_VERSION "1.0.0" CACHE STRING "streamvbyte library version")
 set(STREAMVBYTE_LIB_SOVERSION "1" CACHE STRING "streamvbyte library soversion")
 
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_C_STANDARD_REQUIRED ON)
+# Create target
+add_library(
+    streamvbyte
+    src/streamvbyte_encode.c
+    src/streamvbyte_decode.c
+    src/streamvbyte_zigzag.c
+    src/streamvbytedelta_encode.c
+    src/streamvbytedelta_decode.c
+    src/streamvbyte_0124_encode.c
+    src/streamvbyte_0124_decode.c
+)
+
+# Add alias
+add_library(streamvbyte::streamvbyte ALIAS streamvbyte)
+
+# Set C standard
+target_compile_features(streamvbyte PUBLIC c_std_99)
+set_target_properties(${WB_TARGET_NAME} PROPERTIES C_STANDARD_REQUIRED ON)
+
+# Set fPIC
+set_target_properties(
+    streamvbyte
+    PROPERTIES POSITION_INDEPENDENT_CODE ON
+)
 
 option(STREAMVBYTE_SANITIZE "Sanitize addresses" OFF)
 
+# Set CMAKE_BUILD_TYPE
 if(NOT CMAKE_BUILD_TYPE)
     message(STATUS "No build type selected")
     if(STREAMVBYTE_SANITIZE)
@@ -38,6 +61,12 @@ if(STREAMVBYTE_SANITIZE)
     add_compile_definitions(ASAN_OPTIONS=detect_leaks=1)
 endif()
 
+option(STREAMVBYTE_SANITIZE_UNDEFINED "Sanitize undefined behavior" OFF)
+if(STREAMVBYTE_SANITIZE_UNDEFINED)
+    add_compile_options(-fsanitize=undefined -fno-sanitize-recover=all)
+    add_link_options(-fsanitize=undefined -fno-sanitize-recover=all)
+endif()
+
 if(MSVC)
     add_definitions("-D__restrict__=__restrict")
 endif()
@@ -47,21 +76,9 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64.*|AARCH64.*)")
     set(BASE_FLAGS ${BASE_FLAGS} "-D__ARM_NEON__")
 endif()
 
-set(STREAMVBYTE_SRCS
-    ${PROJECT_SOURCE_DIR}/src/streamvbyte_encode.c
-    ${PROJECT_SOURCE_DIR}/src/streamvbyte_decode.c
-    ${PROJECT_SOURCE_DIR}/src/streamvbyte_zigzag.c
-    ${PROJECT_SOURCE_DIR}/src/streamvbytedelta_encode.c
-    ${PROJECT_SOURCE_DIR}/src/streamvbytedelta_decode.c
-    ${PROJECT_SOURCE_DIR}/src/streamvbyte_0124_encode.c
-    ${PROJECT_SOURCE_DIR}/src/streamvbyte_0124_decode.c
-)
-
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
-add_library(streamvbyte "${STREAMVBYTE_SRCS}")
 target_link_libraries(streamvbyte ${BASE_FLAGS})
 
+# Set version
 set_target_properties(
     streamvbyte
     PROPERTIES
@@ -70,6 +87,7 @@ set_target_properties(
         WINDOWS_EXPORT_ALL_SYMBOLS YES
 )
 
+# Add root include directory
 target_include_directories(
     streamvbyte
     PUBLIC
@@ -77,21 +95,7 @@ target_include_directories(
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/include>
 )
 
-install(
-    FILES
-        ${PROJECT_SOURCE_DIR}/include/streamvbyte.h
-        ${PROJECT_SOURCE_DIR}/include/streamvbytedelta.h
-        ${PROJECT_SOURCE_DIR}/include/streamvbyte_zigzag.h
-    DESTINATION include
-)
-install(TARGETS streamvbyte DESTINATION lib)
-
-option(STREAMVBYTE_SANITIZE_UNDEFINED "Sanitize undefined behavior" OFF)
-if(STREAMVBYTE_SANITIZE_UNDEFINED)
-    add_compile_options(-fsanitize=undefined -fno-sanitize-recover=all)
-    add_link_options(-fsanitize=undefined -fno-sanitize-recover=all)
-endif()
-
+# Print info
 message(STATUS "CMAKE_SYSTEM_PROCESSOR: " ${CMAKE_SYSTEM_PROCESSOR})
 message(STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE}) # this tends to be "sticky" so you can remain unknowingly in debug mode
 message(STATUS "CMAKE_C_COMPILER: " ${CMAKE_C_COMPILER}) # important to know which compiler is used
@@ -99,35 +103,51 @@ message(STATUS "CMAKE_C_FLAGS: " ${CMAKE_C_FLAGS}) # important to know the flags
 message(STATUS "CMAKE_C_FLAGS_DEBUG: " ${CMAKE_C_FLAGS_DEBUG})
 message(STATUS "CMAKE_C_FLAGS_RELEASE: " ${CMAKE_C_FLAGS_RELEASE})
 
-# build programs
-
-# example
+# Example
 option(STREAMVBYTE_ENABLE_EXAMPLES "Enable examples for streamvbyte" OFF)
 if(STREAMVBYTE_ENABLE_EXAMPLES)
-    add_executable(example ${PROJECT_SOURCE_DIR}/examples/example.c)
+    add_executable(example examples/example.c)
     target_link_libraries(example streamvbyte)
 endif()
 
+# Tests
 option(STREAMVBYTE_ENABLE_TESTS "Enable unit tests for streamvbyte" OFF)
 if(STREAMVBYTE_ENABLE_TESTS)
     if(NOT MSVC)
-        # perf
-        add_executable(perf ${PROJECT_SOURCE_DIR}/tests/perf.c)
+        # Perf
+        add_executable(perf tests/perf.c)
         target_link_libraries(perf streamvbyte)
         target_link_libraries(perf m)
     endif()
 
-    # writeseq
-    add_executable(writeseq ${PROJECT_SOURCE_DIR}/tests/writeseq.c)
+    # Writeseq
+    add_executable(writeseq tests/writeseq.c)
     target_link_libraries(writeseq streamvbyte)
 
-    # unit
-    add_executable(unit ${PROJECT_SOURCE_DIR}/tests/unit.c)
+    # Unit
+    add_executable(unit tests/unit.c)
     target_link_libraries(unit streamvbyte)
 
     enable_testing()
 
-    # add unit tests
+    # Add unit tests
     add_test(NAME unit COMMAND unit)
     add_custom_target(check COMMAND ctest --output-on-failure DEPENDS unit)
 endif()
+
+# Install
+install(TARGETS streamvbyte EXPORT streamvbyte-target)
+install(
+    EXPORT streamvbyte-target
+    FILE streamvbyte-targets.cmake
+    NAMESPACE streamvbyte::
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/cmake
+)
+install(
+    FILES
+        ${PROJECT_SOURCE_DIR}/include/streamvbyte.h
+        ${PROJECT_SOURCE_DIR}/include/streamvbytedelta.h
+        ${PROJECT_SOURCE_DIR}/include/streamvbyte_zigzag.h
+    DESTINATION include
+)
+
