@@ -66,7 +66,7 @@ from the input buffer (these bytes are read but never used).
 
 
 
-## 1. Building with CMake:
+### 1. Building with CMake:
 
 We expect a recent CMake. Please make sure that your version of CMake is up-to-date or you may
 need to adapt our instructions.
@@ -92,13 +92,13 @@ ctest --test-dir build
 
 ```
 
-### Installation with CMake
+#### Installation with CMake
 
 ```
 cmake --install build 
 ```
 
-### Benchmarking with CMake
+#### Benchmarking with CMake
 
 
 After building, you may run our benchmark as follows:
@@ -110,12 +110,12 @@ After building, you may run our benchmark as follows:
 The benchmarks are not currently built under Windows.
 
 
-## 2. Building with Makefile:
+### 2. Building with Makefile:
 
       make
       ./unit
 
-### Installation with Makefile
+#### Installation with Makefile
 
 You can install the library (as a dynamic library) on your machine if you have root access:
 
@@ -127,7 +127,7 @@ To uninstall, simply type:
 
 It is recommended that you try ``make dyntest`` before proceeding.
 
-### Benchmarking with Makefile
+#### Benchmarking with Makefile
 
 
 You can try to benchmark the speed in this manner:
