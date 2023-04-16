@@ -39,12 +39,12 @@ This library is used by
 
 # Usage
 
-Usage with Makefile:
+## 1. Usage with Makefile:
 
       make
       ./unit
 
-Usage with CMake:
+## 2. Usage with CMake:
 
 The cmake build system also offers a `libstreamvbyte_static` static library
 (`libstreamvbyte_static` under linux) in addition to
