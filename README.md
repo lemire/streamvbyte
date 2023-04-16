@@ -68,6 +68,9 @@ from the input buffer (these bytes are read but never used).
 
 ## 1. Building with CMake:
 
+We expect a recent CMake. Please make sure that your version of CMake is up-to-date or you may
+need to adapt our instructions.
+
 The cmake build system also offers a `libstreamvbyte_static` static library
 (`libstreamvbyte_static` under linux) in addition to
 `libstreamvbyte` shared library (`libstreamvbyte.so` under linux).
@@ -75,25 +78,65 @@ The cmake build system also offers a `libstreamvbyte_static` static library
 `-DCMAKE_INSTALL_PREFIX:PATH=/path/to/install` is optional.
 Defaults to /usr/local{include,lib}
 
+
+
 ```
-mkdir build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release \
+cmake -DCMAKE_BUILD_TYPE=Release \
          -DCMAKE_INSTALL_PREFIX:PATH=/path/to/install \
 	 -DSTREAMVBYTE_ENABLE_EXAMPLES=ON \
-	 -DSTREAMVBYTE_ENABLE_TESTS=ON
-make install
+	 -DSTREAMVBYTE_ENABLE_TESTS=ON -B build
 
+cmake --build build
 # run the tests like:
-ctest -V
+ctest --test-dir build
 
 ```
+
+### Installation with CMake
+
+```
+cmake --install build 
+```
+
+### Benchmarking with CMake
+
+
+After building, you may run our benchmark as follows:
+
+```
+./build/test/perf
+```
+
+The benchmarks are not currently built under Windows.
 
 
 ## 2. Building with Makefile:
 
       make
       ./unit
+
+### Installation with Makefile
+
+You can install the library (as a dynamic library) on your machine if you have root access:
+
+      sudo make install
+
+To uninstall, simply type:
+
+      sudo make uninstall
+
+It is recommended that you try ``make dyntest`` before proceeding.
+
+### Benchmarking with Makefile
+
+
+You can try to benchmark the speed in this manner:
+
+      make perf
+      ./perf
+
+Make sure to run ``make test`` before, as a sanity test.
+
 
 Signed integers
 -----------------
@@ -108,29 +151,6 @@ zigzag_encode(mysignedints, myunsignedints, number); // mysignedints => myunsign
 
 zigzag_decode(myunsignedints, mysignedints, number); // myunsignedints => mysignedints
 ```
-
-Installation
-----------------
-
-You can install the library (as a dynamic library) on your machine if you have root access:
-
-      sudo make install
-
-To uninstall, simply type:
-
-      sudo make uninstall
-
-It is recommended that you try ``make dyntest`` before proceeding.
-
-Benchmarking
------------------
-
-You can try to benchmark the speed in this manner:
-
-      make perf
-      ./perf
-
-Make sure to run ``make test`` before, as a sanity test.
 
 Technical posts
 ---------------
