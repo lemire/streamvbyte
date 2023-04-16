@@ -6,13 +6,9 @@
 PROCESSOR:=$(shell uname -m)
 
 ifeq ($(PROCESSOR), aarch64)
-# for 64-bit ARM processors
+# for 64-bit ARM processors (e.g., Linux), they may fail to defined __ARM_NEON__
 CFLAGS = -fPIC -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow -D__ARM_NEON__
-else ifeq ($(PROCESSOR), armv7l)
-# for 32-bit ARM processors
-CFLAGS = -fPIC -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow
 else
-# Here we expect x64
 CFLAGS = -fPIC -std=c99 -O3 -Wall -Wextra -pedantic -Wshadow
 endif
 LDFLAGS = -shared

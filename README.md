@@ -39,33 +39,6 @@ This library is used by
 
 # Usage
 
-## 1. Usage with Makefile:
-
-      make
-      ./unit
-
-## 2. Usage with CMake:
-
-The cmake build system also offers a `libstreamvbyte_static` static library
-(`libstreamvbyte_static` under linux) in addition to
-`libstreamvbyte` shared library (`libstreamvbyte.so` under linux).
-
-`-DCMAKE_INSTALL_PREFIX:PATH=/path/to/install` is optional.
-Defaults to /usr/local{include,lib}
-
-```
-mkdir build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release \
-         -DCMAKE_INSTALL_PREFIX:PATH=/path/to/install \
-	 -DSTREAMVBYTE_ENABLE_EXAMPLES=ON \
-	 -DSTREAMVBYTE_ENABLE_TESTS=ON
-make install
-
-# run the tests like:
-ctest -V
-
-```
 
 See `examples/example.c` for an example.
 
@@ -89,6 +62,38 @@ information along with the compressed stream. The
 
 During decoding, the library may read up to `STREAMVBYTE_PADDING` extra bytes
 from the input buffer (these bytes are read but never used).
+
+
+
+
+## 1. Building with CMake:
+
+The cmake build system also offers a `libstreamvbyte_static` static library
+(`libstreamvbyte_static` under linux) in addition to
+`libstreamvbyte` shared library (`libstreamvbyte.so` under linux).
+
+`-DCMAKE_INSTALL_PREFIX:PATH=/path/to/install` is optional.
+Defaults to /usr/local{include,lib}
+
+```
+mkdir build
+cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release \
+         -DCMAKE_INSTALL_PREFIX:PATH=/path/to/install \
+	 -DSTREAMVBYTE_ENABLE_EXAMPLES=ON \
+	 -DSTREAMVBYTE_ENABLE_TESTS=ON
+make install
+
+# run the tests like:
+ctest -V
+
+```
+
+
+## 2. Building with Makefile:
+
+      make
+      ./unit
 
 Signed integers
 -----------------
