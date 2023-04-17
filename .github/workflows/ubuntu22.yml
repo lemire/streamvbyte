@@ -49,3 +49,11 @@ jobs:
           cmake .. -DSTREAMVBYTE_SANITIZE_UNDEFINED=ON -DCMAKE_BUILD_TYPE=buildundefsani -DSTREAMVBYTE_ENABLE_EXAMPLES=ON -DSTREAMVBYTE_ENABLE_TESTS=ON &&
           cmake --build .   &&
           ctest --output-on-failure
+
+      - name: Install sreamvbyte
+        run: |
+          cd buildrelease
+          sudo cmake --install .
+
+      - name: Check cmake target installation
+        run: cmake --find-package -DNAME=streamvbyte -DCOMPILER_ID=GNU -DLANGUAGE=C -DMODE=EXIST
