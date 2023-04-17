@@ -23,13 +23,10 @@ add_library(streamvbyte::streamvbyte ALIAS streamvbyte)
 
 # Set C standard
 target_compile_features(streamvbyte PUBLIC c_std_99)
-set_target_properties(${WB_TARGET_NAME} PROPERTIES C_STANDARD_REQUIRED ON)
+set_target_properties(streamvbyte PROPERTIES C_STANDARD_REQUIRED ON)
 
 # Set fPIC
-set_target_properties(
-    streamvbyte
-    PROPERTIES POSITION_INDEPENDENT_CODE ON
-)
+set_target_properties(streamvbyte PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 option(STREAMVBYTE_SANITIZE "Sanitize addresses" OFF)
 
@@ -136,6 +133,8 @@ if(STREAMVBYTE_ENABLE_TESTS)
 endif()
 
 # Install
+include(GNUInstallDirs)
+
 install(TARGETS streamvbyte EXPORT streamvbyte-target)
 install(
     EXPORT streamvbyte-target
@@ -143,6 +142,30 @@ install(
     NAMESPACE streamvbyte::
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/cmake
 )
+
+include(CMakePackageConfigHelpers)
+
+# Create package config file
+configure_package_config_file(
+    "${PROJECT_SOURCE_DIR}/cmake/streamvbyte-config.cmake.in"
+    "streamvbyte-config.cmake"
+    INSTALL_DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/cmake
+)
+
+# Create package version file
+write_basic_package_version_file(
+    streamvbyte-config-version.cmake
+    COMPATIBILITY SameMajorVersion
+)
+
+# Install cmake files
+install(
+    FILES
+        "${PROJECT_BINARY_DIR}/streamvbyte-config.cmake"
+        "${PROJECT_BINARY_DIR}/streamvbyte-config-version.cmake"
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/cmake
+)
+
 install(
     FILES
         ${PROJECT_SOURCE_DIR}/include/streamvbyte.h
@@ -150,4 +173,3 @@ install(
         ${PROJECT_SOURCE_DIR}/include/streamvbyte_zigzag.h
     DESTINATION include
 )
-
