@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.3)
 
 set(CMAKE_MACOSX_RPATH OFF)
-project(streamvbyte VERSION "1.0.0")
+project(streamvbyte VERSION "0.5.3" LANGUAGES C)
 
-set(STREAMVBYTE_LIB_VERSION "1.0.0" CACHE STRING "streamvbyte library version")
+set(STREAMVBYTE_LIB_VERSION "0.5.3" CACHE STRING "streamvbyte library version")
 set(STREAMVBYTE_LIB_SOVERSION "1" CACHE STRING "streamvbyte library soversion")
 
 # Create target
@@ -65,7 +65,7 @@ if(STREAMVBYTE_SANITIZE_UNDEFINED)
 endif()
 
 if(MSVC)
-    add_definitions("-D__restrict__=__restrict")
+    target_compiler_definitions(streamvbyte PRIVATE "__restrict__=__restrict")
 endif()
 
 # test for arm
