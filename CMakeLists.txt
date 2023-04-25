@@ -65,7 +65,7 @@ if(STREAMVBYTE_SANITIZE_UNDEFINED)
 endif()
 
 if(MSVC)
-    target_compiler_definitions(streamvbyte PRIVATE "__restrict__=__restrict")
+    target_compile_definitions(streamvbyte PRIVATE "__restrict__=__restrict")
 endif()
 
 # test for arm
