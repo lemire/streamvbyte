@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.12)
 
 set(CMAKE_MACOSX_RPATH OFF)
 project(streamvbyte VERSION "0.5.3" LANGUAGES C)
