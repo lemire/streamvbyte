@@ -104,6 +104,15 @@ zigzag_encode(mysignedints, myunsignedints, number); // mysignedints => myunsign
 zigzag_decode(myunsignedints, mysignedints, number); // myunsignedints => mysignedints
 ```
 
+Installation (CMake)
+----------------
+
+```
+cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake --build .
+sudo cmake --install .
+```
+
 Installation
 ----------------
 
