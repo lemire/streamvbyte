@@ -55,7 +55,7 @@ if(STREAMVBYTE_SANITIZE)
         -fno-omit-frame-pointer
         -fno-sanitize-recover=all
     )
-    add_compile_definitions(ASAN_OPTIONS=detect_leaks=1)
+    add_compile_definitions("ASAN_OPTIONS=detect_leaks=1")
 endif()
 
 option(STREAMVBYTE_SANITIZE_UNDEFINED "Sanitize undefined behavior" OFF)
@@ -68,12 +68,10 @@ if(MSVC)
     target_compile_definitions(streamvbyte PRIVATE "__restrict__=__restrict")
 endif()
 
-# test for arm
+# Add Neon support flag
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64.*|AARCH64.*)")
-    set(BASE_FLAGS ${BASE_FLAGS} "-D__ARM_NEON__")
+    add_compile_definitions("__ARM_NEON__")
 endif()
-
-target_link_libraries(streamvbyte ${BASE_FLAGS})
 
 # Set version
 set_target_properties(
