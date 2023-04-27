@@ -37,35 +37,79 @@ This library is used by
  * [Facebook Thrift](https://github.com/facebook/fbthrift),
  * [Trinity Information Retrieval framework](https://github.com/phaistos-networks/Trinity).
 
-# Usage
+# Installation
 
-Usage with Makefile:
+## CMake
+
+```
+cd streamvbyte
+mkdir build && cd build
+cmake .. -DSTREAMVBYTE_ENABLE_EXAMPLES=ON \ 		# default: OFF
+	 -DSTREAMVBYTE_ENABLE_TESTS=ON                  # default: OFF
+cmake --build .
+
+ctest -V # run tests if builded
+
+sudo cmake --install .
+```
+
+## Makefile
+
+You can install the library (as a dynamic library) on your machine if you have root access:
+
+      sudo make install
+
+To uninstall, simply type:
+
+      sudo make uninstall
+
+It is recommended that you try ``make dyntest`` before proceeding.
+
+
+Unit test
 
       make
       ./unit
 
-Usage with CMake:
 
-The cmake build system also offers a `libstreamvbyte_static` static library
-(`libstreamvbyte_static` under linux) in addition to
-`libstreamvbyte` shared library (`libstreamvbyte.so` under linux).
+# CMake integration
 
-`-DCMAKE_INSTALL_PREFIX:PATH=/path/to/install` is optional.
-Defaults to /usr/local{include,lib}
+## FindPackage
 
+```cmake
+find_package(streamvbyte REQUIRED)
+
+add_executable(program program.cpp)
+target_link_libraries(program streamvbyte::streamvbyte)
 ```
-mkdir build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release \
-         -DCMAKE_INSTALL_PREFIX:PATH=/path/to/install \
-	 -DSTREAMVBYTE_ENABLE_EXAMPLES=ON \
-	 -DSTREAMVBYTE_ENABLE_TESTS=ON
-make install
 
-# run the tests like:
-ctest -V
+## FetchContent
 
+```cmake
+Include(FetchContent)
+
+FetchContent_Declare(
+  streamvbyte
+  GIT_REPOSITORY https://github.com/lemire/streamvbyte.git
+  GIT_TAG        v0.5.4 # or a later release
+)
+
+FetchContent_MakeAvailable(streamvbyte)
+
+add_executable(program program.cpp)
+target_link_libraries(program streamvbyte::streamvbyte)
 ```
+
+## Subdirectory
+
+```cmake
+add_subdirectory(streamvbyte)
+
+add_executable(program program.cpp)
+target_link_libraries(program streamvbyte::streamvbyte)
+```
+
+# Usage
 
 See `examples/example.c` for an example.
 
@@ -104,27 +148,6 @@ zigzag_encode(mysignedints, myunsignedints, number); // mysignedints => myunsign
 zigzag_decode(myunsignedints, mysignedints, number); // myunsignedints => mysignedints
 ```
 
-Installation (CMake)
-----------------
-
-```
-cmake -DCMAKE_BUILD_TYPE=Release ..
-cmake --build .
-sudo cmake --install .
-```
-
-Installation
-----------------
-
-You can install the library (as a dynamic library) on your machine if you have root access:
-
-      sudo make install
-
-To uninstall, simply type:
-
-      sudo make uninstall
-
-It is recommended that you try ``make dyntest`` before proceeding.
 
 Benchmarking
 -----------------
