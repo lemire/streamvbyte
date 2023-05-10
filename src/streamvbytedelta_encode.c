@@ -7,7 +7,11 @@
 #include "streamvbytedelta_x64_encode.c"
 #endif
 
-static uint8_t _encode_data(uint32_t val, uint8_t *__restrict__ *dataPtrPtr) {
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wdeclaration-after-statement"
+#endif
+
+static uint8_t svb_encode_data(uint32_t val, uint8_t *__restrict__ *dataPtrPtr) {
   uint8_t *dataPtr = *dataPtrPtr;
   uint8_t code;
 
@@ -49,7 +53,7 @@ static uint8_t *svb_encode_scalar_d1_init(const uint32_t *in,
     }
     uint32_t val = in[c] - prev;
     prev = in[c];
-    uint8_t code = _encode_data(val, &dataPtr);
+    uint8_t code = svb_encode_data(val, &dataPtr);
     key |= code << shift;
     shift += 2;
   }
@@ -68,5 +72,5 @@ size_t streamvbyte_delta_encode(const uint32_t *in, uint32_t count, uint8_t *out
   uint8_t *keyPtr = out;             // keys come immediately after 32-bit count
   uint32_t keyLen = (count + 3) / 4; // 2-bits rounded to full byte
   uint8_t *dataPtr = keyPtr + keyLen; // variable byte data after all keys
-  return svb_encode_scalar_d1_init(in, keyPtr, dataPtr, count, prev) - out;
+  return (size_t)(svb_encode_scalar_d1_init(in, keyPtr, dataPtr, count, prev) - out);
 }

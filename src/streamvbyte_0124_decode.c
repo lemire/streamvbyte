@@ -7,14 +7,17 @@
 
 #include <string.h> // for memcpy
 
-
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wcast-align"
+#pragma clang diagnostic ignored "-Wdeclaration-after-statement"
+#endif
 
 #ifdef STREAMVBYTE_X64
 STREAMVBYTE_TARGET_SSE41
-static inline __m128i _decode_sse41(uint32_t key,
+static inline __m128i svb_decode_sse41(uint32_t key,
                                   const uint8_t *__restrict__ *dataPtrPtr) {
   uint8_t len;
-  __m128i Data = _mm_loadu_si128((__m128i *)*dataPtrPtr);
+  __m128i Data = _mm_loadu_si128((const __m128i *)*dataPtrPtr);
   uint8_t *pshuf = (uint8_t *) &shuffleTable[key];
   __m128i Shuf = *(__m128i *)pshuf;
   len = lengthTable[key];
@@ -25,14 +28,14 @@ static inline __m128i _decode_sse41(uint32_t key,
 STREAMVBYTE_UNTARGET_REGION
 
 STREAMVBYTE_TARGET_SSE41
-static inline void _write_sse41(uint32_t *out, __m128i Vec) {
+static inline void svb_write_sse41(uint32_t *out, __m128i Vec) {
   _mm_storeu_si128((__m128i *)out, Vec);
 }
 STREAMVBYTE_UNTARGET_REGION
 
 #endif // STREAMVBYTE_X64
 
-static inline uint32_t _decode_data(const uint8_t **dataPtrPtr, uint8_t code) {
+static inline uint32_t svb_decode_data(const uint8_t **dataPtrPtr, uint8_t code) {
   const uint8_t *dataPtr = *dataPtrPtr;
   uint32_t val;
 
@@ -67,7 +70,7 @@ static const uint8_t *svb_decode_scalar(uint32_t *outPtr, const uint8_t *keyPtr,
       shift = 0;
       key = *keyPtr++;
     }
-    uint32_t val = _decode_data(&dataPtr, (key >> shift) & 0x3);
+    uint32_t val = svb_decode_data(&dataPtr, (key >> shift) & 0x3);
     *outPtr++ = val;
     shift += 2;
   }
@@ -95,56 +98,56 @@ static const uint8_t *svb_decode_sse41_simple(uint32_t *out,
       uint64_t keys = nextkeys;
       memcpy(&nextkeys, keyPtr64 + Offset + 1, sizeof(nextkeys));
 
-      Data = _decode_sse41((keys & 0xFF), &dataPtr);
-      _write_sse41(out, Data);
-      Data = _decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
-      _write_sse41(out + 4, Data);
+      Data = svb_decode_sse41((keys & 0xFF), &dataPtr);
+      svb_write_sse41(out, Data);
+      Data = svb_decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
+      svb_write_sse41(out + 4, Data);
 
       keys >>= 16;
-      Data = _decode_sse41((keys & 0xFF), &dataPtr);
-      _write_sse41(out + 8, Data);
-      Data = _decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
-      _write_sse41(out + 12, Data);
+      Data = svb_decode_sse41((keys & 0xFF), &dataPtr);
+      svb_write_sse41(out + 8, Data);
+      Data = svb_decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
+      svb_write_sse41(out + 12, Data);
 
       keys >>= 16;
-      Data = _decode_sse41((keys & 0xFF), &dataPtr);
-      _write_sse41(out + 16, Data);
-      Data = _decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
-      _write_sse41(out + 20, Data);
+      Data = svb_decode_sse41((keys & 0xFF), &dataPtr);
+      svb_write_sse41(out + 16, Data);
+      Data = svb_decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
+      svb_write_sse41(out + 20, Data);
 
       keys >>= 16;
-      Data = _decode_sse41((keys & 0xFF), &dataPtr);
-      _write_sse41(out + 24, Data);
-      Data = _decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
-      _write_sse41(out + 28, Data);
+      Data = svb_decode_sse41((keys & 0xFF), &dataPtr);
+      svb_write_sse41(out + 24, Data);
+      Data = svb_decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
+      svb_write_sse41(out + 28, Data);
 
       out += 32;
     }
     {
       uint64_t keys = nextkeys;
 
-      Data = _decode_sse41((keys & 0xFF), &dataPtr);
-      _write_sse41(out, Data);
-      Data = _decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
-      _write_sse41(out + 4, Data);
+      Data = svb_decode_sse41((keys & 0xFF), &dataPtr);
+      svb_write_sse41(out, Data);
+      Data = svb_decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
+      svb_write_sse41(out + 4, Data);
 
       keys >>= 16;
-      Data = _decode_sse41((keys & 0xFF), &dataPtr);
-      _write_sse41(out + 8, Data);
-      Data = _decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
-      _write_sse41(out + 12, Data);
+      Data = svb_decode_sse41((keys & 0xFF), &dataPtr);
+      svb_write_sse41(out + 8, Data);
+      Data = svb_decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
+      svb_write_sse41(out + 12, Data);
 
       keys >>= 16;
-      Data = _decode_sse41((keys & 0xFF), &dataPtr);
-      _write_sse41(out + 16, Data);
-      Data = _decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
-      _write_sse41(out + 20, Data);
+      Data = svb_decode_sse41((keys & 0xFF), &dataPtr);
+      svb_write_sse41(out + 16, Data);
+      Data = svb_decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
+      svb_write_sse41(out + 20, Data);
 
       keys >>= 16;
-      Data = _decode_sse41((keys & 0xFF), &dataPtr);
-      _write_sse41(out + 24, Data);
-      Data = _decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
-      _write_sse41(out + 28, Data);
+      Data = svb_decode_sse41((keys & 0xFF), &dataPtr);
+      svb_write_sse41(out + 24, Data);
+      Data = svb_decode_sse41((keys & 0xFF00) >> 8, &dataPtr);
+      svb_write_sse41(out + 28, Data);
 
       out += 32;
     }
@@ -171,12 +174,12 @@ size_t streamvbyte_decode_0124(const uint8_t *in, uint32_t *out, uint32_t count)
 #ifdef STREAMVBYTE_X64
   if(streamvbyte_sse41()) {
     dataPtr = svb_decode_sse41_simple(out, keyPtr, dataPtr, count);
-    out += count & ~ 31;
-    keyPtr += (count/4) & ~ 7;
+    out += count & ~ 31U;
+    keyPtr += (count/4) & ~ 7U;
     count &= 31;
   }
 #endif
 
-  return svb_decode_scalar(out, keyPtr, dataPtr, count) - in;
+  return (size_t)(svb_decode_scalar(out, keyPtr, dataPtr, count) - in);
 
 }

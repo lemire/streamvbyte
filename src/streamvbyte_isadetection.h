@@ -88,7 +88,7 @@ enum streamvbyte_instruction_set {
 
 #if defined(__PPC64__)
 
-static inline uint32_t dynamic_streamvbyte_detect_supported_architectures() {
+static inline uint32_t dynamic_streamvbyte_detect_supported_architectures(void) {
   return streamvbyte_ALTIVEC;
 }
 
@@ -96,13 +96,13 @@ static inline uint32_t dynamic_streamvbyte_detect_supported_architectures() {
 
 #if defined(__ARM_NEON)
 
-static inline uint32_t dynamic_streamvbyte_detect_supported_architectures() {
+static inline uint32_t dynamic_streamvbyte_detect_supported_architectures(void) {
   return streamvbyte_NEON;
 }
 
 #else // ARM without NEON
 
-static inline uint32_t dynamic_streamvbyte_detect_supported_architectures() {
+static inline uint32_t dynamic_streamvbyte_detect_supported_architectures(void) {
   return streamvbyte_DEFAULT;
 }
 
@@ -118,11 +118,11 @@ static inline void cpuid(uint32_t *eax, uint32_t *ebx, uint32_t *ecx,
 
 #if defined(_MSC_VER)
   int cpu_info[4];
-  __cpuid(cpu_info, *eax);
-  *eax = cpu_info[0];
-  *ebx = cpu_info[1];
-  *ecx = cpu_info[2];
-  *edx = cpu_info[3];
+  __cpuid(cpu_info, (int)*eax);
+  *eax = (uint32_t)cpu_info[0];
+  *ebx = (uint32_t)cpu_info[1];
+  *ecx = (uint32_t)cpu_info[2];
+  *edx = (uint32_t)cpu_info[3];
 #elif defined(HAVE_GCC_GET_CPUID) && defined(USE_GCC_GET_CPUID)
   uint32_t level = *eax;
   __get_cpuid(level, eax, ebx, ecx, edx);
@@ -136,7 +136,7 @@ static inline void cpuid(uint32_t *eax, uint32_t *ebx, uint32_t *ecx,
 #endif
 }
 
-static inline uint32_t dynamic_streamvbyte_detect_supported_architectures() {
+static inline uint32_t dynamic_streamvbyte_detect_supported_architectures(void) {
   uint32_t eax, ebx, ecx, edx;
   uint32_t host_isa = 0x0;
   // Can be found on Intel ISA Reference for CPUID
@@ -183,7 +183,7 @@ static inline uint32_t dynamic_streamvbyte_detect_supported_architectures() {
 #else // fallback
 
 
-static inline uint32_t dynamic_streamvbyte_detect_supported_architectures() {
+static inline uint32_t dynamic_streamvbyte_detect_supported_architectures(void) {
   return streamvbyte_DEFAULT;
 }
 
@@ -195,7 +195,7 @@ static inline uint32_t dynamic_streamvbyte_detect_supported_architectures() {
 #define STREAMVBYTE_X64
 #if defined(__cplusplus)
 #include <atomic>
-static inline uint32_t streamvbyte_detect_supported_architectures() {
+static inline uint32_t streamvbyte_detect_supported_architectures(void) {
     static std::atomic<int> buffer{streamvbyte_UNINITIALIZED};
     if(buffer == streamvbyte_UNINITIALIZED) {
       buffer = dynamic_streamvbyte_detect_supported_architectures();
@@ -204,7 +204,7 @@ static inline uint32_t streamvbyte_detect_supported_architectures() {
 }
 #elif defined(_MSC_VER) && !defined(__clang__)
 // Visual Studio does not support C11 atomics.
-static inline uint32_t streamvbyte_detect_supported_architectures() {
+static inline uint32_t streamvbyte_detect_supported_architectures(void) {
     static int buffer = streamvbyte_UNINITIALIZED;
     if(buffer == streamvbyte_UNINITIALIZED) {
       buffer = dynamic_streamvbyte_detect_supported_architectures();
@@ -216,16 +216,18 @@ static inline uint32_t streamvbyte_detect_supported_architectures() {
 #include <stdatomic.h>
 #endif
 
-static inline uint32_t streamvbyte_detect_supported_architectures() {
+static inline uint32_t streamvbyte_detect_supported_architectures(void) {
 #if __STDC_VERSION__ >= 201112L
-    static _Atomic int buffer = streamvbyte_UNINITIALIZED;
+    static _Atomic uint32_t buffer = streamvbyte_UNINITIALIZED;
 #else
     static int buffer = streamvbyte_UNINITIALIZED;
 #endif
-    if(buffer == streamvbyte_UNINITIALIZED) {
-      buffer = dynamic_streamvbyte_detect_supported_architectures();
+    uint32_t result = atomic_load_explicit(&buffer, memory_order_acquire);
+    if(result == streamvbyte_UNINITIALIZED) {
+      result = dynamic_streamvbyte_detect_supported_architectures();
+      atomic_store_explicit(&buffer, result, memory_order_release);
     }
-    return buffer;
+    return result;
 }
 #endif // defined(_MSC_VER) && !defined(__clang__)
 
@@ -235,7 +237,7 @@ static inline bool streamvbyte_sse41() {
   return true;
 }
 #else
-static inline bool streamvbyte_sse41() {
+static inline bool streamvbyte_sse41(void) {
   return  (streamvbyte_detect_supported_architectures() & streamvbyte_SSE41) == streamvbyte_SSE41;
 }
 #endif
@@ -247,7 +249,7 @@ static inline bool streamvbyte_sse41() {
   return false;
 }
 
-static inline uint32_t streamvbyte_detect_supported_architectures() {
+static inline uint32_t streamvbyte_detect_supported_architectures(void) {
     // no runtime dispatch
     return dynamic_streamvbyte_detect_supported_architectures();
 }
@@ -292,6 +294,12 @@ static inline uint32_t streamvbyte_detect_supported_architectures() {
 #ifdef __sse41___
 #undef STREAMVBYTE_TARGET_SSE41
 #define STREAMVBYTE_TARGET_SSE41
+#endif
+
+#if defined(__clang__) || defined(__GNUC__)
+#define STREAMVBYTE_ASSUME_ALIGNED(P, A) __builtin_assume_aligned((P), (A))
+#else
+#define STREAMVBYTE_ASSUME_ALIGNED(P, A)
 #endif
 
 #endif // STREAMVBYTE_IS_X64

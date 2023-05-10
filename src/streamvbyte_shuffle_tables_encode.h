@@ -93,7 +93,7 @@ static const uint8_t len_lut[256] = {
 };
 #endif
 #ifdef STREAMVBYTE_ARM
-static uint8_t encodingShuffleTable[256][16] = {
+static int8_t encodingShuffleTable[256][16] = {
  {  0,  4,  8, 12, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },    // 1111
  {  0,  1,  4,  8, 12, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },    // 2111
  {  0,  1,  2,  4,  8, 12, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },    // 3111
