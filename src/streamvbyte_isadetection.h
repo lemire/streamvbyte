@@ -212,22 +212,30 @@ static inline uint32_t streamvbyte_detect_supported_architectures(void) {
     return buffer;
 }
 #else // defined(__cplusplus) and defined(_MSC_VER) && !defined(__clang__)
-#if __STDC_VERSION__ >= 201112L
+#if __STDC_VERSION__ >= 201112L && !defined(__STDC_NO_ATOMICS__)
 #include <stdatomic.h>
 #endif
 
 static inline uint32_t streamvbyte_detect_supported_architectures(void) {
-#if __STDC_VERSION__ >= 201112L
+#if __STDC_VERSION__ >= 201112L && !defined(__STDC_NO_ATOMICS__)
     static _Atomic uint32_t buffer = streamvbyte_UNINITIALIZED;
 #else
     static int buffer = streamvbyte_UNINITIALIZED;
 #endif
+
+#if __STDC_VERSION__ >= 201112L && !defined(__STDC_NO_ATOMICS__)
     uint32_t result = atomic_load_explicit(&buffer, memory_order_acquire);
     if(result == streamvbyte_UNINITIALIZED) {
       result = dynamic_streamvbyte_detect_supported_architectures();
       atomic_store_explicit(&buffer, result, memory_order_release);
     }
     return result;
+#else
+    if (buffer == streamvbyte_UNINITIALIZED) {
+      buffer = dynamic_streamvbyte_detect_supported_architectures();
+    }
+    return buffer;
+#endif
 }
 #endif // defined(_MSC_VER) && !defined(__clang__)
 
