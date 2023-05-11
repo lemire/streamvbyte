@@ -32,7 +32,7 @@ jobs:
       uses: actions/checkout@v2
     - name: Configure
       run: |
-        cmake -G "${{matrix.gen}}" -A ${{matrix.arch}} "${{matrix.mode}}" -DSIMDJSON_DEVELOPER_MODE=ON -DSIMDJSON_COMPETITION=OFF -DSIMDJSON_BUILD_STATIC=${{matrix.static}} -DSTREAMVBYTE_ENABLE_EXAMPLES=ON -DSTREAMVBYTE_ENABLE_TESTS=ON -B build
+        cmake -G "${{matrix.gen}}" -A ${{matrix.arch}} "${{matrix.mode}}" -DSIMDJSON_DEVELOPER_MODE=ON -DSIMDJSON_COMPETITION=OFF -DSIMDJSON_BUILD_STATIC=${{matrix.static}} -DSTREAMVBYTE_ENABLE_EXAMPLES=ON -DSTREAMVBYTE_ENABLE_TESTS=ON -DSTREAMVBYTE_WALL=ON -DSTREAMVBYTE_WERROR=ON -B build
     - name: Build Debug
       run: cmake --build build --config Debug --verbose
     - name: Build Release
