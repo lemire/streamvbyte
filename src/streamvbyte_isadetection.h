@@ -241,7 +241,7 @@ static inline uint32_t streamvbyte_detect_supported_architectures(void) {
 
 
 #if defined(__sse41__)
-static inline bool streamvbyte_sse41() {
+static inline bool streamvbyte_sse41(void) {
   return true;
 }
 #else
@@ -253,7 +253,7 @@ static inline bool streamvbyte_sse41(void) {
 
 #else // defined(__x86_64__) || defined(_M_AMD64) // x64
 
-static inline bool streamvbyte_sse41() {
+static inline bool streamvbyte_sse41(void) {
   return false;
 }
 

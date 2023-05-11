@@ -11,7 +11,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 
 include(CheckCCompilerFlag)
 
-option(STREAMVBYTE_WALL "Emmit all warnings during compilation." ON)
+option(STREAMVBYTE_WALL "Emit all warnings during compilation." ON)
 
 if (STREAMVBYTE_WALL)
     if (MSVC)
@@ -28,12 +28,20 @@ if (STREAMVBYTE_WALL)
 endif ()
 
 option (STREAMVBYTE_WERROR "Treat warnings as errors." OFF)
+
 if (STREAMVBYTE_WERROR)
     if (MSVC)
         check_c_compiler_flag("/WX" WERROR_MSVC_SUPPORTED)
         if (WERROR_MSVC_SUPPORTED)
             add_compile_options(/WX)
         endif ()
+        # If using Wall, cl may insert spectre-related warnings.
+        if (STREAMVBYTE_WALL)
+            check_c_compiler_flag("/wd5045" SUPPRESS_SPECTRE_MSVC_SUPPORTED)
+            if (SUPPRESS_SPECTRE_MSVC_SUPPORTED)
+                add_compile_options(/wd5045)
+            endif ()
+        endif()
     else()
         check_c_compiler_flag(-Werror WERROR_GNU_SUPPORTED)
         if (WERROR_GNU_SUPPORTED)
@@ -158,6 +166,7 @@ if(STREAMVBYTE_ENABLE_TESTS)
     # unit
     add_executable(unit ${PROJECT_SOURCE_DIR}/tests/unit.c)
     target_link_libraries(unit streamvbyte)
+    target_include_directories(unit PRIVATE ${PROJECT_SOURCE_DIR}/src)
 
     enable_testing()
 

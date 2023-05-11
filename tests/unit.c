@@ -1,7 +1,7 @@
 #include "streamvbyte.h"
 #include "streamvbyte_zigzag.h"
 #include "streamvbytedelta.h"
-#include "../src/streamvbyte_isadetection.h"
+#include "streamvbyte_isadetection.h"
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -56,7 +56,7 @@ static int zigzagtests(void) {
 
 // Fixtures from https://developers.google.com/protocol-buffers/docs/encoding#signed_integers
 static int zigzagfixturestests(void) {
-  const int32_t original[] = {0, -1, 1, -2, 2147483647, -2147483648};
+  const int32_t original[] = {0, -(int32_t)1, 1, -(int32_t)2, 2147483647, -(int32_t)2147483648};
   const uint32_t encoded[] = {0,  1, 2,  3, 4294967294,  4294967295};
 
   uint32_t out[] = {0xaaaaaaaa, 0xaaaaaaaa, 0xaaaaaaaa, 0xaaaaaaaa, 0xaaaaaaaa, 0xaaaaaaaa};
@@ -2722,12 +2722,12 @@ static bool issue42(void) {
     8,   13,  23,  14,  9,   6,   4,   0,   10,  9,   11,  10,  0,   10
   };
 
-  const int COMPRESSED_SIZE = 36494;
-  const int ORIG_SIZE = 29159;
+  const uint32_t COMPRESSED_SIZE = 36494;
+  const uint32_t ORIG_SIZE = 29159;
   uint32_t *recovdata = malloc(ORIG_SIZE * sizeof(uint32_t));
   uint8_t *compressedbuffer = malloc((COMPRESSED_SIZE) * sizeof(uint8_t) + 16);
 
-  for (int i = 0; i < COMPRESSED_SIZE; i++) {
+  for (uint32_t i = 0; i < COMPRESSED_SIZE; i++) {
     compressedbuffer[i] = a[i];
   }
 
