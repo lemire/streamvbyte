@@ -56,7 +56,7 @@ static int zigzagtests(void) {
 
 // Fixtures from https://developers.google.com/protocol-buffers/docs/encoding#signed_integers
 static int zigzagfixturestests(void) {
-  const int32_t original[] = {0, -(int32_t)1, 1, -(int32_t)2, 2147483647, -(int32_t)2147483648};
+  const int32_t original[] = {0, -1, 1, -2, 2147483647, -2147483648};
   const uint32_t encoded[] = {0,  1, 2,  3, 4294967294,  4294967295};
 
   uint32_t out[] = {0xaaaaaaaa, 0xaaaaaaaa, 0xaaaaaaaa, 0xaaaaaaaa, 0xaaaaaaaa, 0xaaaaaaaa};
