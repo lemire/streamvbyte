@@ -10,6 +10,7 @@
 
 #ifdef __clang__
 #pragma clang diagnostic ignored "-Wdeclaration-after-statement"
+#pragma clang diagnostic ignored "-Wunused-variable"
 #endif
 
 static void punt(long long n, char *s) {

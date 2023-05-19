@@ -6,6 +6,7 @@
 
 #ifdef __clang__
 #pragma clang diagnostic ignored "-Wdeclaration-after-statement"
+#pragma clang diagnostic ignored "-Wunused-variable"
 #endif
 
 int main(void) {
