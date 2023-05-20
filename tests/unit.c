@@ -1,21 +1,25 @@
 #include "streamvbyte.h"
 #include "streamvbyte_zigzag.h"
 #include "streamvbytedelta.h"
-#include "../src/streamvbyte_isadetection.h"
+#include "streamvbyte_isadetection.h"
 
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-static bool isLittleEndian() {
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wdeclaration-after-statement"
+#endif
+
+static bool isLittleEndian(void) {
   int x = 1;
   char *c = (char *)&x;
   return (*c == 1);
 }
 
 // return -1 in case of failure
-int zigzagtests() {
+static int zigzagtests(void) {
     size_t N = 4096;
     int32_t *datain = malloc(N * sizeof(int32_t));
     for(size_t i = 0; i < N; i++)
@@ -51,9 +55,9 @@ int zigzagtests() {
 
 
 // Fixtures from https://developers.google.com/protocol-buffers/docs/encoding#signed_integers
-int zigzagfixturestests() {
-  const int32_t original[] = {0, -1, 1, -2, 2147483647, -2147483648};
-  const uint32_t encoded[] = {0,  1, 2,  3, 4294967294,  4294967295};
+static int zigzagfixturestests(void) {
+  const int32_t original[] = {0, -1, 1, -2, INT32_MAX,      INT32_MIN};
+  const uint32_t encoded[] = {0,  1, 2,  3, UINT32_MAX - 1, UINT32_MAX};
 
   uint32_t out[] = {0xaaaaaaaa, 0xaaaaaaaa, 0xaaaaaaaa, 0xaaaaaaaa, 0xaaaaaaaa, 0xaaaaaaaa};
 
@@ -81,8 +85,8 @@ int zigzagfixturestests() {
 }
 
 // return -1 in case of failure
-int basictests() {
-  int N = 4096;
+static int basictests(void) {
+  uint32_t N = 4096U;
   uint32_t *datain = malloc(N * sizeof(uint32_t));
   // on purpose we mess with the alignment of compressedbufferorig
   uint8_t *compressedbufferorig =
@@ -90,10 +94,10 @@ int basictests() {
   uint8_t *compressedbuffer = compressedbufferorig + (sizeof(uint32_t) - 1);
   uint32_t *recovdata = malloc(N * sizeof(uint32_t));
 
-  for (int length = 0; length <= N;) {
+  for (uint32_t length = 0; length <= N;) {
     for (uint32_t gap = 1; gap <= 387420489; gap *= 3) {
-      for (int k = 0; k < length; ++k)
-        datain[k] = gap - 1 + (rand() % 8); // sometimes start with zero
+      for (uint32_t k = 0; k < length; ++k)
+        datain[k] = gap - 1 + ((uint32_t)rand() % 8); // sometimes start with zero
 
       // Default encoding: 1,2,3,4 bytes per value
       size_t compsize = streamvbyte_encode(datain, length, compressedbuffer);
@@ -105,7 +109,7 @@ int basictests() {
         return -1;
       }
 
-      for (int k = 0; k < length; ++k) {
+      for (uint32_t k = 0; k < length; ++k) {
         if (recovdata[k] != datain[k]) {
           printf("[streamvbyte_decode] code is buggy gap=%d\n", (int)gap);
           return -1;
@@ -122,7 +126,7 @@ int basictests() {
         return -1;
       }
 
-      for (int k = 0; k < length; ++k) {
+      for (uint32_t k = 0; k < length; ++k) {
         if (recovdata[k] != datain[k]) {
           printf("[streamvbyte_decode_0124] code is buggy gap=%d\n", (int)gap);
           return -1;
@@ -131,8 +135,8 @@ int basictests() {
     }
 
     // Delta-encoded functions
-    for (size_t gap = 1; gap <= 531441; gap *= 3) {
-      for (int k = 0; k < length; ++k)
+    for (uint32_t gap = 1; gap <= 531441; gap *= 3) {
+      for (uint32_t k = 0; k < length; ++k)
         datain[k] = gap * k;
       size_t compsize =
           streamvbyte_delta_encode(datain, length, compressedbuffer, 0);
@@ -144,7 +148,7 @@ int basictests() {
                (int)gap, (int)compsize, (int)usedbytes);
         return -1;
       }
-      for (int k = 0; k < length; ++k) {
+      for (uint32_t k = 0; k < length; ++k) {
         if (recovdata[k] != datain[k]) {
           printf("[streamvbyte_delta_decode] code is buggy gap=%d\n",
                  (int)gap);
@@ -165,7 +169,7 @@ int basictests() {
   return 0;
 }
 // return -1 in case of failure
-int aqrittests() {
+static int aqrittests(void) {
   uint8_t in[16];
   uint8_t compressedbuffer[32];
   uint8_t recovdata[16];
@@ -224,7 +228,7 @@ int aqrittests() {
   return 0;
 }
 
-int compressedbytestests() {
+static int compressedbytestests(void) {
   const uint32_t *empty = 0;
 
   if (streamvbyte_compressedbytes(empty, 0) != 0) {
@@ -243,7 +247,7 @@ int compressedbytestests() {
     return -1;
   }
 
-  uint32_t biggest[] = {-1, -1, -1, -1};
+  uint32_t biggest[] = {UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX};
 
   if (streamvbyte_compressedbytes(biggest, 4) != (1 + (4 * 4))) {
     return -1;
@@ -252,7 +256,7 @@ int compressedbytestests() {
   return 0;
 }
 
-int compressedbytestests0124() {
+static int compressedbytestests0124(void) {
   const uint32_t *empty = 0;
 
   if (streamvbyte_compressedbytes_0124(empty, 0) != 0) {
@@ -271,7 +275,7 @@ int compressedbytestests0124() {
     return -1;
   }
 
-  uint32_t biggest[] = {-1, -1, -1, -1};
+  uint32_t biggest[] = {UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX};
 
   if (streamvbyte_compressedbytes_0124(biggest, 4) != (1 + (4 * 4))) {
     return -1;
@@ -280,7 +284,7 @@ int compressedbytestests0124() {
   return 0;
 }
 
-bool issue42() {
+static bool issue42(void) {
 
   uint8_t a[36494] = {
     5,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
@@ -2718,12 +2722,12 @@ bool issue42() {
     8,   13,  23,  14,  9,   6,   4,   0,   10,  9,   11,  10,  0,   10
   };
 
-  const int COMPRESSED_SIZE = 36494;
-  const int ORIG_SIZE = 29159;
+  const uint32_t COMPRESSED_SIZE = 36494;
+  const uint32_t ORIG_SIZE = 29159;
   uint32_t *recovdata = malloc(ORIG_SIZE * sizeof(uint32_t));
   uint8_t *compressedbuffer = malloc((COMPRESSED_SIZE) * sizeof(uint8_t) + 16);
 
-  for (int i = 0; i < COMPRESSED_SIZE; i++) {
+  for (uint32_t i = 0; i < COMPRESSED_SIZE; i++) {
     compressedbuffer[i] = a[i];
   }
 
@@ -2755,12 +2759,14 @@ bool issue42() {
   return true;
 }
 
-int main() {
-  if(!issue42()) { printf("tests failed.\n"); return EXIT_FAILURE; }
-  if(zigzagtests() == -1) { printf("tests failed.\n"); return EXIT_FAILURE; }
+int main(void) {
+  if (!issue42()) { printf("tests failed.\n"); return EXIT_FAILURE; }
+  if (zigzagtests() == -1) { printf("tests failed.\n"); return EXIT_FAILURE; }
   if (basictests() == -1) { printf("tests failed.\n"); return EXIT_FAILURE; }
   if (aqrittests() == -1) { printf("tests failed.\n"); return EXIT_FAILURE; }
   if (compressedbytestests() == -1) { printf("tests failed.\n"); return EXIT_FAILURE; }
+  if (zigzagfixturestests() == -1) { printf("tests failed.\n"); return EXIT_FAILURE; }
+  if (compressedbytestests0124() == -1) { printf("tests failed.\n"); return EXIT_FAILURE; }
   printf("Code looks good.\n");
   if (isLittleEndian()) {
     printf("And you have a little endian architecture.\n");

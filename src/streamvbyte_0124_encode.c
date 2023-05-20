@@ -4,8 +4,12 @@
 
 #include <string.h> // for memcpy
 
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wcast-align"
+#pragma clang diagnostic ignored "-Wdeclaration-after-statement"
+#endif
 
-static uint8_t _encode_data(uint32_t val, uint8_t *__restrict__ *dataPtrPtr) {
+static uint8_t svb_encode_data(uint32_t val, uint8_t *__restrict__ *dataPtrPtr) {
   uint8_t *dataPtr = *dataPtrPtr;
   uint8_t code;
 
@@ -43,7 +47,7 @@ static uint8_t *svb_encode_scalar(const uint32_t *in,
       key = 0;
     }
     uint32_t val = in[c];
-    uint8_t code = _encode_data(val, &dataPtr);
+    uint8_t code = svb_encode_data(val, &dataPtr);
     key |= code << shift;
     shift += 2;
   }
@@ -82,7 +86,7 @@ STREAMVBYTE_UNTARGET_REGION
 
 STREAMVBYTE_TARGET_SSE41
 static size_t streamvbyte_encode_quad(const uint32_t *in, uint8_t *outData, uint8_t *outKey) {
-  __m128i vin = _mm_loadu_si128((__m128i *) in );
+  __m128i vin = _mm_loadu_si128((const __m128i *) in );
   return streamvbyte_encode4(vin, outData, outKey);
 }
 STREAMVBYTE_UNTARGET_REGION
@@ -104,6 +108,6 @@ size_t streamvbyte_encode_0124(const uint32_t *in, uint32_t count, uint8_t *out)
     }
   }
 #endif
-  return svb_encode_scalar(in, keyPtr, dataPtr, count) - out;
+  return (size_t)(svb_encode_scalar(in, keyPtr, dataPtr, count) - out);
 
 }

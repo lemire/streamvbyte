@@ -2,8 +2,10 @@
 #include "streamvbyte_isadetection.h"
 
 #include <string.h> // for memcpy
-#include "streamvbyte_shuffle_tables_decode.h"
 
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wdeclaration-after-statement"
+#endif
 
 #ifdef __ARM_NEON__
 #include "streamvbyte_arm_decode.c"
@@ -13,7 +15,7 @@
 #include "streamvbyte_x64_decode.c"
 #endif // STREAMVBYTE_X64
 
-static inline uint32_t _decode_data(const uint8_t **dataPtrPtr, uint8_t code) {
+static inline uint32_t svb_decode_data(const uint8_t **dataPtrPtr, uint8_t code) {
   const uint8_t *dataPtr = *dataPtrPtr;
   uint32_t val;
 
@@ -49,7 +51,7 @@ static const uint8_t *svb_decode_scalar(uint32_t *outPtr, const uint8_t *keyPtr,
       shift = 0;
       key = *keyPtr++;
     }
-    uint32_t val = _decode_data(&dataPtr, (key >> shift) & 0x3);
+    uint32_t val = svb_decode_data(&dataPtr, (key >> shift) & 0x3);
     *outPtr++ = val;
     shift += 2;
   }
@@ -70,8 +72,8 @@ size_t streamvbyte_decode(const uint8_t *in, uint32_t *out, uint32_t count) {
 #ifdef STREAMVBYTE_X64
   if(streamvbyte_sse41()) {
     dataPtr = svb_decode_sse41_simple(out, keyPtr, dataPtr, count);
-    out += count & ~ 31;
-    keyPtr += (count/4) & ~ 7;
+    out += count & ~ 31U;
+    keyPtr += (count/4) & ~ 7U;
     count &= 31;
   }
 #elif defined(__ARM_NEON__)
@@ -81,6 +83,6 @@ size_t streamvbyte_decode(const uint8_t *in, uint32_t *out, uint32_t count) {
   count &= 3;
 #endif
 
-  return svb_decode_scalar(out, keyPtr, dataPtr, count) - in;
+  return (size_t)(svb_decode_scalar(out, keyPtr, dataPtr, count) - in);
 
 }

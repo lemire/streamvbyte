@@ -1,4 +1,11 @@
 #include "streamvbyte_isadetection.h"
+#include "streamvbyte_shuffle_tables_encode.h"
+
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wcast-align"
+#pragma clang diagnostic ignored "-Wdeclaration-after-statement"
+#endif
+
 #ifdef STREAMVBYTE_X64
 // contributed by aqrit
 
@@ -23,16 +30,16 @@ static inline size_t svb_control_SSE41 (__m128i lo, __m128i hi) {
 STREAMVBYTE_UNTARGET_REGION
 
 STREAMVBYTE_TARGET_SSE41
-size_t svb_data_bytes_SSE41 (const uint32_t* in, uint32_t count) {
+static size_t svb_data_bytes_SSE41 (const uint32_t* in, uint32_t count) {
     size_t dataLen = 0;
 
-    for (const uint32_t* end = &in[(count & ~7)]; in != end; in += 8)
+    for (const uint32_t* end = &in[(count & ~7U)]; in != end; in += 8)
     {
         __m128i r0, r1;
         size_t keys;
 
-        r0 = _mm_loadu_si128((__m128i *) &in[0]);
-        r1 = _mm_loadu_si128((__m128i *) &in[4]);
+        r0 = _mm_loadu_si128((const __m128i *) &in[0]);
+        r1 = _mm_loadu_si128((const __m128i *) &in[4]);
 
         keys = svb_control_SSE41(r0, r1);
         dataLen += len_lut[keys & 0xFF];
@@ -45,23 +52,23 @@ size_t svb_data_bytes_SSE41 (const uint32_t* in, uint32_t count) {
 STREAMVBYTE_UNTARGET_REGION
 
 STREAMVBYTE_TARGET_SSE41
-size_t streamvbyte_encode_SSE41 (const uint32_t* in, uint32_t count, uint8_t* out) {
+static size_t streamvbyte_encode_SSE41 (const uint32_t* in, uint32_t count, uint8_t* out) {
 	uint32_t keyLen = (count >> 2) + (((count & 3) + 3) >> 2); // 2-bits per each rounded up to byte boundry
 	uint8_t *restrict keyPtr = &out[0];
 	uint8_t *restrict dataPtr = &out[keyLen]; // variable length data after keys
 
-	for (const uint32_t* end = &in[(count & ~7)]; in != end; in += 8)
+	for (const uint32_t* end = &in[(count & ~7U)]; in != end; in += 8)
 	{
 		__m128i r0, r1, r2, r3;
 		size_t keys;
 
-		r0 = _mm_loadu_si128((__m128i*)&in[0]);
-		r1 = _mm_loadu_si128((__m128i*)&in[4]);
+		r0 = _mm_loadu_si128((const __m128i*)&in[0]);
+		r1 = _mm_loadu_si128((const __m128i*)&in[4]);
 
 		keys = svb_control_SSE41(r0, r1);
 
-		r2 = _mm_loadu_si128((__m128i*)&shuf_lut[(keys << 4) & 0x03F0]);
-		r3 = _mm_loadu_si128((__m128i*)&shuf_lut[(keys >> 4) & 0x03F0]);
+		r2 = _mm_loadu_si128((const __m128i*)&shuf_lut[(keys << 4) & 0x03F0]);
+		r3 = _mm_loadu_si128((const __m128i*)&shuf_lut[(keys >> 4) & 0x03F0]);
 		r0 = _mm_shuffle_epi8(r0, r2);
 		r1 = _mm_shuffle_epi8(r1, r3);
 
@@ -86,7 +93,7 @@ size_t streamvbyte_encode_SSE41 (const uint32_t* in, uint32_t count, uint8_t* ou
 	}
 	memcpy(keyPtr, &key, ((count & 7) + 3) >> 2);
 
-	return dataPtr - out;
+	return (size_t)(dataPtr - out);
 }
 STREAMVBYTE_UNTARGET_REGION
 #endif
