@@ -10,6 +10,7 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 include(CheckCCompilerFlag)
+include(GNUInstallDirs)
 
 option(STREAMVBYTE_WERROR "Treat warnings as errors." OFF)
 option(STREAMVBYTE_WALL "Emit all warnings during compilation." ON)
@@ -134,9 +135,14 @@ install(
         ${PROJECT_SOURCE_DIR}/include/streamvbyte.h
         ${PROJECT_SOURCE_DIR}/include/streamvbytedelta.h
         ${PROJECT_SOURCE_DIR}/include/streamvbyte_zigzag.h
-    DESTINATION include
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
-install(TARGETS streamvbyte DESTINATION lib)
+install(
+    TARGETS streamvbyte
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
 
 option(STREAMVBYTE_SANITIZE_UNDEFINED "Sanitize undefined behavior" OFF)
 if(STREAMVBYTE_SANITIZE_UNDEFINED)
