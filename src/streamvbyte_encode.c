@@ -2,13 +2,16 @@
 #include "streamvbyte_isadetection.h"
 
 #include <string.h> // for memcpy
-#include "streamvbyte_shuffle_tables_encode.h"
+
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wdeclaration-after-statement"
+#endif
 
 #ifdef STREAMVBYTE_X64
 #include "streamvbyte_x64_encode.c"
 #endif
 
-static uint8_t _encode_data(uint32_t val, uint8_t *__restrict__ *dataPtrPtr) {
+static uint8_t svb_encode_data(uint32_t val, uint8_t *__restrict__ *dataPtrPtr) {
   uint8_t *dataPtr = *dataPtrPtr;
   uint8_t code;
 
@@ -49,7 +52,7 @@ static uint8_t *svb_encode_scalar(const uint32_t *in,
       key = 0;
     }
     uint32_t val = in[c];
-    uint8_t code = _encode_data(val, &dataPtr);
+    uint8_t code = svb_encode_data(val, &dataPtr);
     key |= code << shift;
     shift += 2;
   }
@@ -130,5 +133,5 @@ size_t streamvbyte_encode(const uint32_t *in, uint32_t count, uint8_t *out) {
 
 #endif
 
-  return svb_encode_scalar(in, keyPtr, dataPtr, count) - out;
+  return (size_t)(svb_encode_scalar(in, keyPtr, dataPtr, count) - out);
 }

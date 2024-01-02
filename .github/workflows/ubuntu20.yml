@@ -1,4 +1,4 @@
-name: Ubuntu 22.04 CI (GCC 9, 10, 11 and 12, LLVM 12, 13, 14)
+name: Ubuntu 20.04 CI (GCC 9.4 and 10, LLVM 10 and 11)
 
 on:
   push:
@@ -13,24 +13,22 @@ jobs:
     if: >-
       ! contains(toJSON(github.event.commits.*.message), '[skip ci]') &&
       ! contains(toJSON(github.event.commits.*.message), '[skip github]')
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
         include:
           - {compiler: gcc}
-          - {compiler: gcc-9}
           - {compiler: gcc-10}
-          - {compiler: gcc-12}
-          - {compiler: clang-13}
           - {compiler: clang}
+          - {compiler: clang-11}
     steps:
       - uses: actions/checkout@v3
       - name: Use cmake (debug)
         run: |
           mkdir builddebug &&
           cd builddebug &&
-          cmake .. -DCMAKE_BUILD_TYPE=buildundefsani -DSTREAMVBYTE_ENABLE_EXAMPLES=ON -DSTREAMVBYTE_ENABLE_TESTS=ON -DCMAKE_C_COMPILER=${{matrix.compiler}} -DSTREAMVBYTE_WALL=ON -DSTREAMVBYTE_WERROR=ON &&
+          cmake .. -DCMAKE_BUILD_TYPE=buildundefsani -DSTREAMVBYTE_ENABLE_EXAMPLES=ON -DSTREAMVBYTE_ENABLE_TESTS=ON -DSTREAMVBYTE_WALL=ON -DSTREAMVBYTE_WERROR=ON -DCMAKE_C_COMPILER=${{matrix.compiler}} &&
           cmake --build .   &&
           ctest --output-on-failure
       - name: Use cmake (release)

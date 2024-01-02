@@ -1,6 +1,4 @@
 cmake_minimum_required(VERSION 3.3)
-
-set(CMAKE_MACOSX_RPATH OFF)
 project(STREAMVBYTE VERSION "1.0.0")
 
 set(STREAMVBYTE_LIB_VERSION "1.0.0" CACHE STRING "streamvbyte library version")
@@ -8,6 +6,59 @@ set(STREAMVBYTE_LIB_SOVERSION "1" CACHE STRING "streamvbyte library soversion")
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
+
+include(CheckCCompilerFlag)
+include(GNUInstallDirs)
+
+option(STREAMVBYTE_WERROR "Treat warnings as errors." OFF)
+option(STREAMVBYTE_WALL "Emit all warnings during compilation." ON)
+
+if(STREAMVBYTE_WERROR)
+    if(MSVC)
+        check_c_compiler_flag("/WX" WERROR_MSVC_SUPPORTED)
+        if(WERROR_MSVC_SUPPORTED)
+            add_compile_options(/WX)
+        endif()
+        # Wall + WX may throw errors from the corecrt headers. Workaround:
+        if(STREAMVBYTE_WALL)
+            check_c_compiler_flag("/W3" W3_MSVC_SUPPORTED)
+            if(W3_MSVC_SUPPORTED)
+                add_compile_options(/W3)
+            endif()
+            check_c_compiler_flag("/w34714" SUPPRESS_C34714_MSVC_SUPPORTED)
+            if(SUPPRESS_C34714_MSVC_SUPPORTED)
+                add_compile_options(/w34714)
+            endif()
+            check_c_compiler_flag("/wd5045" SUPPRESS_SPECTRE_MSVC_SUPPORTED)
+            if(SUPPRESS_SPECTRE_MSVC_SUPPORTED)
+                add_compile_options(/wd5045)
+            endif()
+            check_c_compiler_flag("/sdl" SDL_MSVC_SUPPORTED)
+            if(SDL_MSVC_SUPPORTED)
+                add_compile_options(/sdl)
+            endif()
+        endif()
+    else()
+        check_c_compiler_flag(-Werror WERROR_GNU_SUPPORTED)
+        if(WERROR_GNU_SUPPORTED)
+            add_compile_options(-Werror)
+        endif()
+    endif()
+endif()
+
+if(STREAMVBYTE_WALL AND NOT(STREAMVBYTE_WERROR))
+    if(MSVC)
+        check_c_compiler_flag("/Wall" WALL_MSVC_SUPPORTED)
+        if(WALL_MSVC_SUPPORTED)
+            add_compile_options(/Wall)
+        endif()
+    else()
+        check_c_compiler_flag(-Wall WALL_GNU_SUPPORTED)
+        if(WALL_GNU_SUPPORTED)
+            add_compile_options(-Wall)
+        endif()
+    endif()
+endif()
 
 option(STREAMVBYTE_SANITIZE "Sanitize addresses" OFF)
 
@@ -82,9 +133,14 @@ install(
         ${PROJECT_SOURCE_DIR}/include/streamvbyte.h
         ${PROJECT_SOURCE_DIR}/include/streamvbytedelta.h
         ${PROJECT_SOURCE_DIR}/include/streamvbyte_zigzag.h
-    DESTINATION include
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
-install(TARGETS streamvbyte DESTINATION lib)
+install(
+    TARGETS streamvbyte
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
 
 option(STREAMVBYTE_SANITIZE_UNDEFINED "Sanitize undefined behavior" OFF)
 if(STREAMVBYTE_SANITIZE_UNDEFINED)
@@ -124,6 +180,7 @@ if(STREAMVBYTE_ENABLE_TESTS)
     # unit
     add_executable(unit ${PROJECT_SOURCE_DIR}/tests/unit.c)
     target_link_libraries(unit streamvbyte)
+    target_include_directories(unit PRIVATE ${PROJECT_SOURCE_DIR}/src)
 
     enable_testing()
 

@@ -3,7 +3,11 @@
 
 #include <string.h> // for memcpy
 
-static inline uint32_t _decode_data(const uint8_t **dataPtrPtr, uint8_t code) {
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wdeclaration-after-statement"
+#endif
+
+static inline uint32_t svb_decode_data(const uint8_t **dataPtrPtr, uint8_t code) {
   const uint8_t *dataPtr = *dataPtrPtr;
   uint32_t val;
 
@@ -42,7 +46,7 @@ static const uint8_t *svb_decode_scalar_d1_init(uint32_t *outPtr,
       shift = 0;
       key = *keyPtr++;
     }
-    uint32_t val = _decode_data(&dataPtr, (key >> shift) & 0x3);
+    uint32_t val = svb_decode_data(&dataPtr, (key >> shift) & 0x3);
     val += prev;
     *outPtr++ = val;
     prev = val;
@@ -63,8 +67,8 @@ size_t streamvbyte_delta_decode(const uint8_t *in, uint32_t *out,
   const uint8_t *dataPtr = keyPtr + keyLen; // data starts at end of keys
 #ifdef STREAMVBYTE_X64
   if(streamvbyte_sse41()) {
-    return svb_decode_sse41_d1_init(out, keyPtr, dataPtr, count, prev) - in;
+    return (size_t)(svb_decode_sse41_d1_init(out, keyPtr, dataPtr, count, prev) - in);
   }
 #endif
-  return svb_decode_scalar_d1_init(out, keyPtr, dataPtr, count, prev) - in;
+  return (size_t)(svb_decode_scalar_d1_init(out, keyPtr, dataPtr, count, prev) - in);
 }

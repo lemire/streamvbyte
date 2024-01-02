@@ -23,19 +23,19 @@ jobs:
           - {compiler: gcc-12}
           - {compiler: clang}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Use cmake (debug)
         run: |
           mkdir builddebug &&
           cd builddebug &&
-          cmake .. -DCMAKE_BUILD_TYPE=buildundefsani -DSTREAMVBYTE_ENABLE_EXAMPLES=ON -DSTREAMVBYTE_ENABLE_TESTS=ON -DCMAKE_C_COMPILER=${{matrix.compiler}} &&
+          cmake .. -DCMAKE_BUILD_TYPE=buildundefsani -DSTREAMVBYTE_ENABLE_EXAMPLES=ON -DSTREAMVBYTE_ENABLE_TESTS=ON -DSTREAMVBYTE_WALL=ON -DSTREAMVBYTE_WERROR=ON -DCMAKE_C_COMPILER=${{matrix.compiler}} &&
           cmake --build .   &&
           ctest --output-on-failure
       - name: Use cmake (release)
         run: |
           mkdir buildrelease &&
           cd buildrelease &&
-          cmake .. -DCMAKE_BUILD_TYPE=Release -DSTREAMVBYTE_ENABLE_EXAMPLES=ON -DSTREAMVBYTE_ENABLE_TESTS=ON &&
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DSTREAMVBYTE_ENABLE_EXAMPLES=ON -DSTREAMVBYTE_ENABLE_TESTS=ON -DSTREAMVBYTE_WALL=ON -DSTREAMVBYTE_WERROR=ON &&
           cmake --build .   &&
           ctest --output-on-failure
 
@@ -43,6 +43,6 @@ jobs:
         run: |
           mkdir buildundefsani &&
           cd buildundefsani &&
-          cmake .. -DSTREAMVBYTE_SANITIZE_UNDEFINED=ON -DCMAKE_BUILD_TYPE=buildundefsani -DSTREAMVBYTE_ENABLE_EXAMPLES=ON -DSTREAMVBYTE_ENABLE_TESTS=ON &&
+          cmake .. -DSTREAMVBYTE_SANITIZE_UNDEFINED=ON -DCMAKE_BUILD_TYPE=buildundefsani -DSTREAMVBYTE_ENABLE_EXAMPLES=ON -DSTREAMVBYTE_ENABLE_TESTS=ON -DSTREAMVBYTE_WALL=ON -DSTREAMVBYTE_WERROR=ON &&
           cmake --build .   &&
           ctest --output-on-failure
