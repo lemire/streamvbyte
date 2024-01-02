@@ -35,7 +35,8 @@ This library is used by
  * Redis' [RediSearch](https://github.com/RedisLabsModules/RediSearch),
  * [StarRocks](https://github.com/StarRocks/starrocks/),
  * [Facebook Thrift](https://github.com/facebook/fbthrift),
- * [Trinity Information Retrieval framework](https://github.com/phaistos-networks/Trinity).
+ * [Trinity Information Retrieval framework](https://github.com/phaistos-networks/Trinity),
+ * [tilemaker](https://github.com/systemed/tilemaker).
 
 # Usage
 

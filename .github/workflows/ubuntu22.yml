@@ -22,7 +22,6 @@ jobs:
           - {compiler: gcc-9}
           - {compiler: gcc-10}
           - {compiler: gcc-12}
-          - {compiler: clang-12}
           - {compiler: clang-13}
           - {compiler: clang}
     steps:
