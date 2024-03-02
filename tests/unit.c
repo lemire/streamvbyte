@@ -2759,8 +2759,31 @@ static bool issue42(void) {
   return true;
 }
 
+
+static bool issue69(void) {
+  uint32_t N = 22;
+  uint32_t test_misaligned[22] = {
+      431, 292, 979, 994, 761, 879, 672, 690, 296,
+      931, 379, 98, 132, 105, 116, 841, 387, 831,
+      335, 333, 557, 915
+  };
+  uint32_t* datain = malloc(N * sizeof(uint32_t));
+  uint8_t* compressedbuffer = malloc(streamvbyte_max_compressedbytes(N));
+  uint32_t* recovdata = malloc(N * sizeof(uint32_t));
+  for (uint32_t k = 0; k < N; ++k) datain[k] = test_misaligned[k];
+  size_t compsize = streamvbyte_encode(datain, N, compressedbuffer);  // encoding
+  // here the result is stored in compressedbuffer using compsize bytes
+  size_t compsize2 = streamvbyte_decode(compressedbuffer, recovdata, N);  // decoding (fast)
+  if (compsize != compsize2) return false;
+  free(datain);
+  free(compressedbuffer);
+  free(recovdata);
+  return true;
+}
+
 int main(void) {
   if (!issue42()) { printf("tests failed.\n"); return EXIT_FAILURE; }
+  if (!issue69()) { printf("tests failed.\n"); return EXIT_FAILURE; }
   if (zigzagtests() == -1) { printf("tests failed.\n"); return EXIT_FAILURE; }
   if (basictests() == -1) { printf("tests failed.\n"); return EXIT_FAILURE; }
   if (aqrittests() == -1) { printf("tests failed.\n"); return EXIT_FAILURE; }
