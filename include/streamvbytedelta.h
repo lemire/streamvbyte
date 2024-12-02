@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-// Encode an array of a given length read from in to bout in StreamVByte format.
+// Encode an array of a given length read from in to out in StreamVByte format.
 // Returns the number of bytes written.
 // The number of values being stored (length) is not encoded in the compressed stream,
 // the caller is responsible for keeping a record of this length. The pointer "in" should
