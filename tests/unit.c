@@ -218,12 +218,12 @@ static int aqrittests(void) {
 
     size_t usedbytes = streamvbyte_decode(compressedbuffer, (uint32_t *)recovdata, length);
     if (compsize != usedbytes) {
-      printf("[streamvbyte_decode] code is buggy");
+      printf("[streamvbyte_decode] code is buggy i=%i\n", i);
       return -1;
     }
     for (size_t k = 0; k < length * sizeof(uint32_t); ++k) {
       if (recovdata[k] != in[k]) {
-        printf("[streamvbyte_decode] code is buggy");
+        printf("[streamvbyte_decode] code is buggy i=%i\n", i);
         return -1;
       }
     }
@@ -236,12 +236,12 @@ static int aqrittests(void) {
 
     usedbytes = streamvbyte_decode_0124(compressedbuffer, (uint32_t *)recovdata, length);
     if (compsize != usedbytes) {
-      printf("[streamvbyte_decode_0124] code is buggy");
+      printf("[streamvbyte_decode_0124] code is buggy i=%i\n", i);
       return -1;
     }
     for (size_t k = 0; k < length * sizeof(uint32_t); ++k) {
       if (recovdata[k] != in[k]) {
-        printf("[streamvbyte_decode_0124] code is buggy");
+        printf("[streamvbyte_decode_0124] code is buggy i=%i\n", i);
         return -1;
       }
     }
