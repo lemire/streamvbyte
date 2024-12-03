@@ -47,6 +47,8 @@ static int zigzagtests(void) {
       }
     }
 
+    free(deltadataout);
+    free(deltadataback);
     free(databack);
     free(dataout);
     free(datain);
