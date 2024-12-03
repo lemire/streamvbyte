@@ -183,7 +183,7 @@ size_t streamvbyte_decode_0124(const uint8_t *in, uint32_t *out, uint32_t count)
   return (size_t)(svb_decode_scalar(out, keyPtr, dataPtr, count) - in);
 }
 
-bool streamvbyte_validate_stream_0124(const uint8_t *in, uint32_t inCount,
+bool streamvbyte_validate_stream_0124(const uint8_t *in, size_t inCount,
                                       uint32_t outCount) {
   if (inCount == 0 || outCount == 0)
     return inCount == outCount;

@@ -72,11 +72,11 @@ size_t streamvbyte_decode_0124(const uint8_t* in, uint32_t* out, uint32_t length
 // etc...) has a valid length stored alongside it.
 // "inLength" is the size of the encoded data "in", and "outLength" is the expected number
 // of integers that were compressed.
-bool streamvbyte_validate_stream(const uint8_t* in, uint32_t inLength, uint32_t outLength);
+bool streamvbyte_validate_stream(const uint8_t* in, size_t inLength, uint32_t outLength);
 
 // Same as streamvbyte_validate_stream but is meant to be used for streams encoded with
 // streamvbyte_encode_0124.
-bool streamvbyte_validate_stream_0124(const uint8_t* in, uint32_t inLength, uint32_t outLength);
+bool streamvbyte_validate_stream_0124(const uint8_t* in, size_t inLength, uint32_t outLength);
 
 #ifdef __cplusplus
 }
