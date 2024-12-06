@@ -105,6 +105,10 @@ bool streamvbyte_validate_stream(const uint8_t *in, size_t inCount,
   const uint8_t *keyPtr = in;
   uint64_t encodedSize = 0;
 
+#if defined(__ARM_NEON__)
+  encodedSize = svb_validate_vector(&keyPtr, &outCount);
+#endif
+
   // Give the compiler a hint that it can avoid branches in the inner loop
   for (uint32_t c = 0; c < outCount / 4; c++) {
     uint32_t key = *keyPtr++;
