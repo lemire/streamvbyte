@@ -103,9 +103,21 @@ bool streamvbyte_validate_stream(const uint8_t *in, size_t inCount,
 
   // Accumulate the key sizes in a wider type to avoid overflow
   const uint8_t *keyPtr = in;
+  uint64_t encodedSize = 0;
+
+  // Give the compiler a hint that it can avoid branches in the inner loop
+  for (uint32_t c = 0; c < outCount / 4; c++) {
+    uint32_t key = *keyPtr++;
+    for (uint8_t shift = 0; shift < 8; shift += 2) {
+      const uint8_t code = (key >> shift) & 0x3;
+      encodedSize += code + 1;
+    }
+  }
+  outCount &= 3;
+
+  // Process the remainder one at a time
   uint8_t shift = 0;
   uint32_t key = *keyPtr++;
-  uint64_t encodedSize = 0;
   for (uint32_t c = 0; c < outCount; c++) {
     if (shift == 8) {
       shift = 0;
