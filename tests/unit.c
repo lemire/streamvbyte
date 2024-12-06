@@ -98,8 +98,9 @@ static int basictests(void) {
 
   for (uint32_t length = 0; length <= N;) {
     for (uint32_t gap = 1; gap <= 387420489; gap *= 3) {
-      for (uint32_t k = 0; k < length; ++k)
-        datain[k] = gap - 1 + ((uint32_t)rand() % 8); // sometimes start with zero
+      datain[0] = (uint32_t)rand() % 8; // sometimes start with zero
+      for (uint32_t k = 1; k < length; ++k)
+        datain[k] = datain[k - 1] + gap - 1 + (uint32_t)rand() % 8;
 
       // Default encoding: 1,2,3,4 bytes per value
       size_t compsize = streamvbyte_encode(datain, length, compressedbuffer);
