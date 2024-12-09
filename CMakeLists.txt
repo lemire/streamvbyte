@@ -86,7 +86,11 @@ if(STREAMVBYTE_SANITIZE)
         -fno-omit-frame-pointer
         -fno-sanitize-recover=all
     )
-    add_compile_definitions(ASAN_OPTIONS=detect_leaks=1)
+    add_link_options(
+        -fsanitize=address
+        -fno-omit-frame-pointer
+        -fno-sanitize-recover=all
+    )
 endif()
 
 if(MSVC)

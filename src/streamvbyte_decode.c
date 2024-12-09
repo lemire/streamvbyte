@@ -84,5 +84,53 @@ size_t streamvbyte_decode(const uint8_t *in, uint32_t *out, uint32_t count) {
 #endif
 
   return (size_t)(svb_decode_scalar(out, keyPtr, dataPtr, count) - in);
+}
 
+bool streamvbyte_validate_stream(const uint8_t *in, size_t inCount,
+                                 uint32_t outCount) {
+  if (inCount == 0 || outCount == 0)
+    return inCount == outCount;
+
+  // 2-bits per key (rounded up)
+  // Note that we don't add to outCount in case it overflows
+  uint32_t keyLen = outCount / 4;
+  if (outCount & 3)
+    keyLen++;
+
+  // Check that there's enough space for the keys
+  if (keyLen > inCount)
+    return false;
+
+  // Accumulate the key sizes in a wider type to avoid overflow
+  const uint8_t *keyPtr = in;
+  uint64_t encodedSize = 0;
+
+#if defined(__ARM_NEON__)
+  encodedSize = svb_validate_vector(&keyPtr, &outCount);
+#endif
+
+  // Give the compiler a hint that it can avoid branches in the inner loop
+  for (uint32_t c = 0; c < outCount / 4; c++) {
+    uint32_t key = *keyPtr++;
+    for (uint8_t shift = 0; shift < 8; shift += 2) {
+      const uint8_t code = (key >> shift) & 0x3;
+      encodedSize += code + 1;
+    }
+  }
+  outCount &= 3;
+
+  // Process the remainder one at a time
+  uint8_t shift = 0;
+  uint32_t key = *keyPtr++;
+  for (uint32_t c = 0; c < outCount; c++) {
+    if (shift == 8) {
+      shift = 0;
+      key = *keyPtr++;
+    }
+    const uint8_t code = (key >> shift) & 0x3;
+    encodedSize += code + 1;
+    shift += 2;
+  }
+
+  return encodedSize == inCount - keyLen;
 }

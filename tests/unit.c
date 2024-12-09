@@ -47,6 +47,8 @@ static int zigzagtests(void) {
       }
     }
 
+    free(deltadataout);
+    free(deltadataback);
     free(databack);
     free(dataout);
     free(datain);
@@ -96,11 +98,18 @@ static int basictests(void) {
 
   for (uint32_t length = 0; length <= N;) {
     for (uint32_t gap = 1; gap <= 387420489; gap *= 3) {
-      for (uint32_t k = 0; k < length; ++k)
-        datain[k] = gap - 1 + ((uint32_t)rand() % 8); // sometimes start with zero
+      datain[0] = (uint32_t)rand() % 8; // sometimes start with zero
+      for (uint32_t k = 1; k < length; ++k)
+        datain[k] = datain[k - 1] + gap - 1 + (uint32_t)rand() % 8;
 
       // Default encoding: 1,2,3,4 bytes per value
       size_t compsize = streamvbyte_encode(datain, length, compressedbuffer);
+      if (!streamvbyte_validate_stream(compressedbuffer, compsize, length)) {
+        printf("[streamvbyte_validate_stream] code is buggy length=%d gap=%d: compsize=%d\n",
+               (int)length, (int)gap, (int)compsize);
+        return -1;
+      }
+
       size_t usedbytes = streamvbyte_decode(compressedbuffer, recovdata, length);
       if (compsize != usedbytes) {
         printf("[streamvbyte_decode] code is buggy length=%d gap=%d: compsize=%d != "
@@ -118,6 +127,12 @@ static int basictests(void) {
 
       // Alternative encoding: 0,1,2,4 bytes per value
       compsize = streamvbyte_encode_0124(datain, length, compressedbuffer);
+      if (!streamvbyte_validate_stream_0124(compressedbuffer, compsize, length)) {
+        printf("[streamvbyte_validate_stream_0124] code is buggy length=%d gap=%d: compsize=%d\n",
+               (int)length, (int)gap, (int)compsize);
+        return -1;
+      }
+
       usedbytes = streamvbyte_decode_0124(compressedbuffer, recovdata, length);
       if (compsize != usedbytes) {
         printf("[streamvbyte_decode_0124] code is buggy length=%d gap=%d: compsize=%d != "
@@ -197,29 +212,37 @@ static int aqrittests(void) {
     const int length = 4;
 
     size_t compsize = streamvbyte_encode((uint32_t *)in, length, compressedbuffer);
-    size_t usedbytes = streamvbyte_decode(compressedbuffer, (uint32_t *)recovdata, length);
+    if (!streamvbyte_validate_stream(compressedbuffer, compsize, length)) {
+      printf("[streamvbyte_validate_stream] code is buggy i=%i\n", i);
+      return -1;
+    }
 
+    size_t usedbytes = streamvbyte_decode(compressedbuffer, (uint32_t *)recovdata, length);
     if (compsize != usedbytes) {
-      printf("[streamvbyte_decode] code is buggy");
+      printf("[streamvbyte_decode] code is buggy i=%i\n", i);
       return -1;
     }
     for (size_t k = 0; k < length * sizeof(uint32_t); ++k) {
       if (recovdata[k] != in[k]) {
-        printf("[streamvbyte_decode] code is buggy");
+        printf("[streamvbyte_decode] code is buggy i=%i\n", i);
         return -1;
       }
     }
 
     compsize = streamvbyte_encode_0124((uint32_t *)in, length, compressedbuffer);
-    usedbytes = streamvbyte_decode_0124(compressedbuffer, (uint32_t *)recovdata, length);
+    if (!streamvbyte_validate_stream_0124(compressedbuffer, compsize, length)) {
+      printf("[streamvbyte_validate_stream_0124] code is buggy i=%i\n", i);
+      return -1;
+    }
 
+    usedbytes = streamvbyte_decode_0124(compressedbuffer, (uint32_t *)recovdata, length);
     if (compsize != usedbytes) {
-      printf("[streamvbyte_decode_0124] code is buggy");
+      printf("[streamvbyte_decode_0124] code is buggy i=%i\n", i);
       return -1;
     }
     for (size_t k = 0; k < length * sizeof(uint32_t); ++k) {
       if (recovdata[k] != in[k]) {
-        printf("[streamvbyte_decode_0124] code is buggy");
+        printf("[streamvbyte_decode_0124] code is buggy i=%i\n", i);
         return -1;
       }
     }
