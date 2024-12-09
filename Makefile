@@ -83,10 +83,10 @@ writeseq: ./tests/writeseq.c    $(HEADERS) $(OBJECTS)
 	$(CC) $(CFLAGS) -o writeseq ./tests/writeseq.c -Iinclude  $(OBJECTS)
 
 unit: ./tests/unit.c    $(HEADERS) $(OBJECTS)
-	$(CC) $(CFLAGS) -o unit ./tests/unit.c -Iinclude  $(OBJECTS)
+	$(CC) $(CFLAGS) -o unit ./tests/unit.c -Iinclude -Isrc  $(OBJECTS)
 
 dynunit: ./tests/unit.c    $(HEADERS) $(LIBNAME) $(LNLIBNAME)
-	$(CC) $(CFLAGS) -o dynunit ./tests/unit.c -Iinclude  -L. -lstreamvbyte
+	$(CC) $(CFLAGS) -o dynunit ./tests/unit.c -Iinclude -Isrc  -L. -lstreamvbyte
 
 clean:
 	rm -f unit *.o $(LIBNAME) $(LNLIBNAME)  example shuffle_tables perf writeseq dynunit

@@ -108,7 +108,7 @@ size_t streamvbyte_compressedbytes_0124(const uint32_t* in, uint32_t length) {
 }
 
 
-// Encode an array of a given length read from in to bout in streamvbyte format.
+// Encode an array of a given length read from in to out in streamvbyte format.
 // Returns the number of bytes written.
 size_t streamvbyte_encode(const uint32_t *in, uint32_t count, uint8_t *out) {
 #ifdef STREAMVBYTE_X64

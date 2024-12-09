@@ -51,4 +51,32 @@ static const uint8_t *svb_decode_vector(uint32_t *out, const uint8_t *keyPtr, co
 
   return dataPtr;
 }
+
+static uint64_t svb_validate_vector(const uint8_t **keyPtrPtr,
+                                    uint32_t *countPtr) {
+  // Reduce the count by how many we'll process
+  const uint32_t count = *countPtr & ~7U;
+  const uint8_t *keyPtr = *keyPtrPtr;
+  *countPtr &= 7;
+  *keyPtrPtr += count / 4;
+
+  // Deal with each of the 4 keys in a separate lane
+  const int32x4_t shifts = {0, -2, -4, -6};
+  const uint32x4_t mask = vdupq_n_u32(3);
+  uint32x4_t acc0 = vdupq_n_u32(0);
+  uint32x4_t acc1 = vdupq_n_u32(0);
+
+  // Unrolling more than twice doesn't seem to improve performance
+  for (uint32_t c = 0; c < count; c += 8) {
+    uint32x4_t shifted0 = vshlq_u32(vdupq_n_u32(*keyPtr++), shifts);
+    acc0 = vaddq_u32(acc0, vandq_u32(shifted0, mask));
+    uint32x4_t shifted1 = vshlq_u32(vdupq_n_u32(*keyPtr++), shifts);
+    acc1 = vaddq_u32(acc1, vandq_u32(shifted1, mask));
+  }
+
+  // Accumulate the sums and add the +1 for each element (count)
+  uint64x2_t sum0 = vpaddlq_u32(acc0);
+  uint64x2_t sum1 = vpaddlq_u32(acc1);
+  return sum0[0] + sum0[1] + sum1[0] + sum1[1] + count;
+}
 #endif

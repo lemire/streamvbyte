@@ -66,7 +66,7 @@ static size_t streamvbyte_encode_SSE41_d1_init (const uint32_t* in, uint32_t cou
 		uint32_t dw = in[i] - prev; prev = in[i];
 		uint32_t symbol = (dw > 0x000000FF) + (dw > 0x0000FFFF) + (dw > 0x00FFFFFF);
 		key |= symbol << (i + i);
-		*((uint32_t*)dataPtr) = dw;
+		memcpy(dataPtr, &dw, 4);
 		dataPtr += 1 + symbol;
 	}
 	memcpy(keyPtr, &key, ((count & 7) + 3) >> 2);
