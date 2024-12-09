@@ -64,6 +64,19 @@ information along with the compressed stream.
 During decoding, the library may read up to `STREAMVBYTE_PADDING` extra bytes
 from the input buffer (these bytes are read but never used).
 
+To verify that the expected size of a stream is correct you may validate it before
+decoding:
+```C
+// compressedbuffer, compsize, recovdata, N are as above
+if (streamvbyte_validate_stream(compressedbuffer, compsize, N)) {
+    // the stream is safe to decode
+    streamvbyte_decode(compressedbuffer, recovdata, N);
+} else {
+    // there's a mismatch between the expected size of the data (N) and the contents of
+    // the stream, so performing a decode is unsafe since the behaviour is undefined
+}
+```
+
 
 
 
