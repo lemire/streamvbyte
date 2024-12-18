@@ -1,4 +1,4 @@
-name: macOS 11 CI (LLVM 13, GCC 10, 11, 12)
+name: macOS CI
 
 on:
   push:
