@@ -13,14 +13,12 @@ jobs:
     if: >-
       ! contains(toJSON(github.event.commits.*.message), '[skip ci]') &&
       ! contains(toJSON(github.event.commits.*.message), '[skip github]')
-    runs-on: macos-11
+    runs-on: macos-latest
     strategy:
       fail-fast: false
       matrix:
         include:
-          - {compiler: gcc-10}
-          - {compiler: gcc-11}
-          - {compiler: gcc-12}
+          - {compiler: gcc}
           - {compiler: clang}
     steps:
       - uses: actions/checkout@v3
